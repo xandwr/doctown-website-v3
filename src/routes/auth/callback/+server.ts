@@ -70,10 +70,10 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			sameSite: 'lax',
 			maxAge: 60 * 60 * 24 * 7 // 7 days
 		});
-
-		throw redirect(303, '/');
 	} catch (err) {
 		console.error('Error creating session:', err);
 		throw error(500, 'Failed to create session');
 	}
+
+	throw redirect(303, '/');
 };
