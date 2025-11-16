@@ -71,7 +71,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			maxAge: 60 * 60 * 24 * 7 // 7 days
 		});
 
-		redirect(303, '/');
+		throw redirect(303, '/');
 	} catch (err) {
 		console.error('Error creating session:', err);
 		throw error(500, 'Failed to create session');
