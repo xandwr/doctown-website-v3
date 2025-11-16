@@ -163,6 +163,30 @@
 		pollingIntervals.set(jobId, intervalId);
 	}
 
+	// Fetch existing docpacks on mount
+	$effect(() => {
+		async function fetchDocpacks() {
+			try {
+				const response = await fetch('/api/docpacks');
+				if (response.ok) {
+					const data = await response.json();
+					docpacks = data.docpacks || [];
+
+					// Start polling for any pending jobs
+					docpacks.forEach(docpack => {
+						if (docpack.status === 'pending' || docpack.status === 'building') {
+							pollJobStatus(docpack.id);
+						}
+					});
+				}
+			} catch (error) {
+				console.error('Error fetching docpacks:', error);
+			}
+		}
+
+		fetchDocpacks();
+	});
+
 	// Cleanup polling intervals when component is destroyed
 	$effect(() => {
 		return () => {

@@ -204,6 +204,40 @@
                     </div>
                 </div>
 
+                <!-- Download Section (for completed docpacks) -->
+                {#if docpack.file_url && (docpack.status === "valid" || docpack.status === "public")}
+                    <div>
+                        <h3
+                            class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                        >
+                            Download
+                        </h3>
+                        <a
+                            href={docpack.file_url}
+                            download
+                            class="block w-full bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-lg px-4 py-3 font-semibold hover:bg-blue-500/30 transition-colors text-center"
+                        >
+                            <div class="flex items-center justify-center gap-2">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    />
+                                </svg>
+                                <span>Download Docpack</span>
+                            </div>
+                        </a>
+                    </div>
+                {/if}
+
                 <!-- Publishing Section -->
                 <div>
                     <h3

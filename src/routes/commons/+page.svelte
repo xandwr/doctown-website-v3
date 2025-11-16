@@ -14,20 +14,9 @@
         version?: string;
     }
 
-    // Mock data for now - will be replaced with actual S3 bucket data
-    let publicDocpacks = $state<Docpack[]>([
-        {
-            id: "1",
-            name: "example-docs",
-            full_name: "user/example-docs",
-            description: "Example public docpack for demonstration",
-            updated_at: new Date().toISOString(),
-            status: "public",
-            repo_url: "https://github.com/user/example-docs",
-            commit_hash: "abc123def456",
-            version: "1.0.0",
-        },
-    ]);
+    let publicDocpacks = $state<Docpack[]>([]);
+    let isLoading = $state(true);
+    let error = $state<string | null>(null);
 
     let selectedDocpack = $state<Docpack | null>(null);
     let modalPosition = $state<{
@@ -35,6 +24,31 @@
         left: number;
         width: number;
     } | null>(null);
+
+    // Fetch public docpacks on mount
+    $effect(() => {
+        async function fetchPublicDocpacks() {
+            try {
+                isLoading = true;
+                error = null;
+                const response = await fetch('/api/docpacks?public=true');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch public docpacks');
+                }
+
+                const data = await response.json();
+                publicDocpacks = data.docpacks || [];
+            } catch (err) {
+                console.error('Error fetching public docpacks:', err);
+                error = err instanceof Error ? err.message : 'Failed to load docpacks';
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        fetchPublicDocpacks();
+    });
 
     function openConfigModal(docpack: Docpack, event: MouseEvent) {
         const target = event.currentTarget as HTMLElement;
@@ -83,7 +97,24 @@
             </span>
         </div>
 
-        {#if publicDocpacks.length > 0}
+        {#if isLoading}
+            <div class="bg-black/30 border border-cyan-500/20 rounded-lg p-12 text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
+                <p class="text-cyan-400/80 font-mono text-sm">
+                    loading public docpacks...
+                </p>
+            </div>
+        {:else if error}
+            <div class="bg-black/30 border border-red-500/20 rounded-lg p-12 text-center">
+                <div class="text-6xl mb-4">⚠️</div>
+                <p class="text-red-400/80 font-mono text-sm mb-2">
+                    {error}
+                </p>
+                <p class="text-white/40 text-xs">
+                    please try again later
+                </p>
+            </div>
+        {:else if publicDocpacks.length > 0}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {#each publicDocpacks as docpack (docpack.id)}
                     <button
