@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createJob } from '$lib/supabase';
+import { createJob, updateJobStatus } from '$lib/supabase';
+import { triggerBuild } from '$lib/runpod';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Check if user is authenticated
@@ -21,14 +22,32 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Invalid or missing git_ref' }, { status: 400 });
 		}
 
-		// Create job in database
+		// Create job in database with initial status 'pending'
 		const job = await createJob({
 			user_id: locals.user.id,
 			repo,
 			git_ref
 		});
 
-		// Return job ID and initial status
+		// Trigger RunPod build in the background
+		// Don't await this to avoid blocking the response
+		triggerBuild({
+			job_id: job.id,
+			repo,
+			git_ref,
+			token: locals.user.access_token
+		})
+			.then(async () => {
+				// Update job status to 'building' after successfully triggering
+				await updateJobStatus(job.id, 'building');
+			})
+			.catch(async (error) => {
+				console.error('Failed to trigger RunPod build:', error);
+				// Update job status to 'failed' if RunPod trigger fails
+				await updateJobStatus(job.id, 'failed', `Failed to trigger build: ${error.message}`);
+			});
+
+		// Return job ID and initial status immediately
 		return json({
 			job_id: job.id,
 			status: job.status,
