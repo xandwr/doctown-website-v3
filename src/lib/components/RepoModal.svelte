@@ -124,7 +124,7 @@
             onclick={handleCreateDocpack}
             class="w-full text-left px-3 py-2 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 font-mono text-xs transition-all rounded-b"
         >
-            Create Docpack
+            Generate Docs
         </button>
     </div>
 {/if}

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import {
+	SUPABASE_URL,
 	SUPABASE_PUBLISHABLE_KEY,
 	SUPABASE_SECRET_KEY
 } from '$env/static/private';
@@ -7,7 +8,7 @@ import type { Database } from './database.types';
 
 // Create Supabase client with service role key for server-side operations
 export const supabase = createClient<Database>(
-	`https://${SUPABASE_PUBLISHABLE_KEY.split('.')[0]}.supabase.co`,
+	SUPABASE_URL,
 	SUPABASE_SECRET_KEY,
 	{
 		auth: {
@@ -37,8 +38,8 @@ export async function upsertUser(data: {
 	html_url: string;
 	access_token: string;
 }) {
-	const { data: user, error } = await supabase
-		.from('users')
+	const { data: user, error } = await (supabase
+		.from('users') as any)
 		.upsert(
 			{
 				github_id: data.github_id,
@@ -69,8 +70,8 @@ export async function createSession(userId: string, expiresInDays: number = 7) {
 	const expiresAt = new Date();
 	expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-	const { data: session, error } = await supabase
-		.from('sessions')
+	const { data: session, error } = await (supabase
+		.from('sessions') as any)
 		.insert({
 			user_id: userId,
 			session_token: sessionToken,
@@ -152,8 +153,8 @@ export async function createJob(data: {
 	repo: string;
 	git_ref: string;
 }) {
-	const { data: job, error } = await supabase
-		.from('jobs')
+	const { data: job, error } = await (supabase
+		.from('jobs') as any)
 		.insert({
 			user_id: data.user_id,
 			repo: data.repo,
@@ -175,8 +176,8 @@ export async function updateJobStatus(
 	status: 'pending' | 'building' | 'completed' | 'failed',
 	errorMessage?: string
 ) {
-	const { data: job, error } = await supabase
-		.from('jobs')
+	const { data: job, error } = await (supabase
+		.from('jobs') as any)
 		.update({
 			status,
 			error_message: errorMessage,
@@ -219,8 +220,8 @@ export async function createDocpack(data: {
 	version?: string;
 	language?: string;
 }) {
-	const { data: docpack, error } = await supabase
-		.from('docpacks')
+	const { data: docpack, error } = await (supabase
+		.from('docpacks') as any)
 		.insert(data)
 		.select()
 		.single();

@@ -69,24 +69,107 @@
 		docpackModalPosition = null;
 	}
 
-	function createDocpack(repo: GitHubRepo) {
-		// Create a new docpack with "pending" status
-		const newDocpack: Docpack = {
-			id: `docpack-${repo.id}`,
-			name: repo.name,
-			full_name: repo.full_name,
-			description: repo.description || undefined,
-			updated_at: repo.updated_at,
-			status: "pending",
-			repo_url: repo.html_url,
-			is_private: repo.private,
-			language: repo.language
-		};
-		
-		docpacks = [...docpacks, newDocpack];
-		availableRepos = availableRepos.filter((r) => r.id !== repo.id);
-		closeRepoModal();
+	async function createDocpack(repo: GitHubRepo) {
+		try {
+			// Call the API to create a job
+			const response = await fetch('/api/jobs/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					repo: repo.full_name,
+					git_ref: 'main', // Default to main branch
+				}),
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				console.error('Failed to create job:', error);
+				alert('Failed to create job: ' + (error.error || 'Unknown error'));
+				return;
+			}
+
+			const { job_id, status } = await response.json();
+
+			// Create a new docpack with "pending" status and job_id
+			const newDocpack: Docpack = {
+				id: job_id,
+				name: repo.name,
+				full_name: repo.full_name,
+				description: repo.description || undefined,
+				updated_at: repo.updated_at,
+				status: status as any,
+				repo_url: repo.html_url,
+				is_private: repo.private,
+				language: repo.language
+			};
+
+			docpacks = [...docpacks, newDocpack];
+			availableRepos = availableRepos.filter((r) => r.id !== repo.id);
+			closeRepoModal();
+
+			// Start polling for job status
+			pollJobStatus(job_id);
+		} catch (error) {
+			console.error('Error creating docpack:', error);
+			alert('Failed to create docpack');
+		}
 	}
+
+	// Map to track active polling intervals
+	const pollingIntervals = new Map<string, number>();
+
+	async function pollJobStatus(jobId: string) {
+		// Don't start polling if already polling this job
+		if (pollingIntervals.has(jobId)) {
+			return;
+		}
+
+		const poll = async () => {
+			try {
+				const response = await fetch(`/api/jobs/status/${jobId}`);
+
+				if (!response.ok) {
+					console.error('Failed to fetch job status');
+					return;
+				}
+
+				const job = await response.json();
+
+				// Update the docpack status
+				docpacks = docpacks.map(d =>
+					d.id === jobId ? { ...d, status: job.status } : d
+				);
+
+				// Stop polling if job is completed or failed
+				if (job.status === 'completed' || job.status === 'failed') {
+					const intervalId = pollingIntervals.get(jobId);
+					if (intervalId) {
+						clearInterval(intervalId);
+						pollingIntervals.delete(jobId);
+					}
+				}
+			} catch (error) {
+				console.error('Error polling job status:', error);
+			}
+		};
+
+		// Poll immediately
+		await poll();
+
+		// Then poll every 5 seconds
+		const intervalId = window.setInterval(poll, 5000);
+		pollingIntervals.set(jobId, intervalId);
+	}
+
+	// Cleanup polling intervals when component is destroyed
+	$effect(() => {
+		return () => {
+			pollingIntervals.forEach(intervalId => clearInterval(intervalId));
+			pollingIntervals.clear();
+		};
+	});
 
 	function handleStatusUpdate(docpack: Docpack, newStatus: DocpackStatus) {
 		// Update the docpack status
