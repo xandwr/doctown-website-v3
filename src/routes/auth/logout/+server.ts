@@ -1,12 +1,16 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { deleteSession } from '../../../hooks.server';
+import { deleteSession } from '$lib/supabase';
 
 export const POST: RequestHandler = async ({ cookies }) => {
-	const sessionId = cookies.get('session_id');
+	const sessionToken = cookies.get('session_id');
 
-	if (sessionId) {
-		deleteSession(sessionId);
+	if (sessionToken) {
+		try {
+			await deleteSession(sessionToken);
+		} catch (error) {
+			console.error('Error deleting session:', error);
+		}
 	}
 
 	// Delete the session cookie

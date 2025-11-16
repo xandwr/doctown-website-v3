@@ -1,16 +1,12 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+import type { User } from '$lib/supabase';
+
 declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			user?: {
-				id: number;
-				login: string;
-				name: string | null;
-				avatar_url: string;
-				html_url: string;
-			};
+			user?: User;
 			accessToken?: string;
 		}
 		// interface PageData {}

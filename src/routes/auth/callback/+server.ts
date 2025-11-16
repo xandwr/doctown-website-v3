@@ -2,7 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_SECRET } from '$env/static/private';
 import { dev } from '$app/environment';
-import { createSession } from '../../../hooks.server';
+import { upsertUser, createSession } from '$lib/supabase';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
@@ -48,23 +48,32 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
 	const userData = await userResponse.json();
 
-	// Create session
-	const sessionId = createSession({
-		id: userData.id,
-		login: userData.login,
-		name: userData.name,
-		avatar_url: userData.avatar_url,
-		html_url: userData.html_url
-	}, accessToken);
+	try {
+		// Upsert user in database (create or update)
+		const user = await upsertUser({
+			github_id: userData.id,
+			github_login: userData.login,
+			name: userData.name,
+			avatar_url: userData.avatar_url,
+			html_url: userData.html_url,
+			access_token: accessToken
+		});
 
-	// Set session cookie
-	cookies.set('session_id', sessionId, {
-		path: '/',
-		httpOnly: true,
-		secure: !dev,
-		sameSite: 'lax',
-		maxAge: 60 * 60 * 24 * 7 // 7 days
-	});
+		// Create session in database
+		const session = await createSession(user.id);
 
-	redirect(303, '/');
+		// Set session cookie
+		cookies.set('session_id', session.session_token, {
+			path: '/',
+			httpOnly: true,
+			secure: !dev,
+			sameSite: 'lax',
+			maxAge: 60 * 60 * 24 * 7 // 7 days
+		});
+
+		redirect(303, '/');
+	} catch (err) {
+		console.error('Error creating session:', err);
+		throw error(500, 'Failed to create session');
+	}
 };
