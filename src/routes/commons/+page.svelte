@@ -8,10 +8,11 @@
         full_name: string;
         description?: string;
         updated_at: string;
-        status: "pending" | "valid" | "public" | "failed";
+        status: "pending" | "valid" | "public" | "failed" | "building";
         repo_url: string;
         commit_hash?: string;
         version?: string;
+        file_url: string | null;
     }
 
     let publicDocpacks = $state<Docpack[]>([]);
@@ -69,7 +70,7 @@
 
     function handleStatusUpdate(
         docpack: Docpack,
-        newStatus: "pending" | "valid" | "public" | "failed",
+        newStatus: "pending" | "valid" | "public" | "failed" | "building",
     ) {
         // Placeholder - will be replaced with actual API call
         console.log(`Updating ${docpack.name} to status: ${newStatus}`);

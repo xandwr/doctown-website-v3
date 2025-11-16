@@ -102,7 +102,8 @@
 				status: status as any,
 				repo_url: repo.html_url,
 				is_private: repo.private,
-				language: repo.language
+				language: repo.language,
+				file_url: null
 			};
 
 			docpacks = [...docpacks, newDocpack];
