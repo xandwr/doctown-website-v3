@@ -10,7 +10,7 @@ export const GET: RequestHandler = async () => {
 	// Determine the redirect URI based on environment
 	const redirectUri = dev
 		? 'http://localhost:5173/auth/callback'
-		: 'https://yourdomain.com/auth/callback'; // Update this for production
+		: 'https://www.doctown.dev/auth/callback';
 
 	// Build GitHub OAuth URL
 	const githubAuthUrl = new URL('https://github.com/login/oauth/authorize');
