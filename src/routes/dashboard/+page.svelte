@@ -146,6 +146,22 @@
 			try {
 				const response = await fetch(`/api/jobs/status/${jobId}`);
 
+				// If job doesn't exist (404), remove it from the list
+				if (response.status === 404) {
+					console.log(`Job ${jobId} no longer exists, removing from list`);
+
+					// Stop polling
+					const intervalId = pollingIntervals.get(jobId);
+					if (intervalId) {
+						clearInterval(intervalId);
+						pollingIntervals.delete(jobId);
+					}
+
+					// Remove from docpacks list
+					docpacks = docpacks.filter(d => d.id !== jobId);
+					return;
+				}
+
 				if (!response.ok) {
 					console.error('Failed to fetch job status');
 					return;

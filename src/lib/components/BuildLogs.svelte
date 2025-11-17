@@ -34,6 +34,12 @@
 			if (response.ok) {
 				const data = await response.json();
 				logs = data.logs || [];
+			} else if (response.status === 404) {
+				error = 'Job not found. It may have been deleted.';
+				// Close the modal after a short delay
+				setTimeout(() => {
+					onClose?.();
+				}, 2000);
 			} else {
 				error = 'Failed to load logs';
 			}
