@@ -288,7 +288,27 @@ export async function getPublicDocpacks() {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return docpacks;
+
+  // Transform the data to match the frontend Docpack type
+  return (
+    docpacks?.map((pack: any) => ({
+      id: pack.id,
+      name: pack.name,
+      full_name: pack.full_name,
+      description: pack.description,
+      file_url: pack.file_url,
+      repo_url: pack.repo_url,
+      commit_hash: pack.commit_hash,
+      version: pack.version,
+      language: pack.language,
+      created_at: pack.created_at,
+      updated_at: pack.updated_at,
+      // Public docpacks have status "public"
+      status: "public",
+      is_private: false,
+      job_id: pack.job_id,
+    })) || []
+  );
 }
 
 /**
