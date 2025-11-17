@@ -32,7 +32,23 @@ export const POST: RequestHandler = async ({ request }) => {
     const authHeader = request.headers.get("authorization");
     const expectedAuth = `Bearer ${env.DOCTOWN_BUILDER_SHARED_SECRET}`;
 
+    // Debug logging
+    console.log(
+      "DEBUG: Received auth header:",
+      authHeader
+        ? `${authHeader.substring(0, 20)}...${authHeader.substring(authHeader.length - 4)}`
+        : "NONE",
+    );
+    console.log(
+      "DEBUG: Expected auth header:",
+      expectedAuth
+        ? `${expectedAuth.substring(0, 20)}...${expectedAuth.substring(expectedAuth.length - 4)}`
+        : "NONE",
+    );
+    console.log("DEBUG: Auth match:", authHeader === expectedAuth);
+
     if (!authHeader || authHeader !== expectedAuth) {
+      console.log("DEBUG: Authorization failed - returning 401");
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
