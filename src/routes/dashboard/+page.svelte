@@ -232,15 +232,38 @@
 		};
 	});
 
-	function handleStatusUpdate(docpack: Docpack, newStatus: DocpackStatus) {
-		// Update the docpack status
-		docpacks = docpacks.map(d =>
-			d.id === docpack.id ? { ...d, status: newStatus } : d
-		);
-		closeDocpackModal();
+	async function handleStatusUpdate(docpack: Docpack, newStatus: DocpackStatus) {
+		try {
+			// Determine the public value based on the new status
+			const isPublic = newStatus === 'public';
 
-		// Placeholder for actual API call
-		console.log(`Updated ${docpack.name} to status: ${newStatus}`);
+			// Call the API to update the docpack
+			const response = await fetch(`/api/docpacks/${docpack.id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ public: isPublic }),
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				console.error('Failed to update docpack:', error);
+				alert('Failed to update docpack: ' + (error.error || 'Unknown error'));
+				return;
+			}
+
+			// Update the docpack status in the local state
+			docpacks = docpacks.map(d =>
+				d.id === docpack.id ? { ...d, status: newStatus } : d
+			);
+			closeDocpackModal();
+
+			console.log(`Successfully updated ${docpack.name} to status: ${newStatus}`);
+		} catch (error) {
+			console.error('Error updating docpack:', error);
+			alert('Failed to update docpack');
+		}
 	}
 
 	async function handleCancelDocpack(docpack: Docpack) {

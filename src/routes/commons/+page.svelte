@@ -68,13 +68,42 @@
         modalPosition = null;
     }
 
-    function handleStatusUpdate(
+    async function handleStatusUpdate(
         docpack: Docpack,
         newStatus: "pending" | "valid" | "public" | "failed" | "building",
     ) {
-        // Placeholder - will be replaced with actual API call
-        console.log(`Updating ${docpack.name} to status: ${newStatus}`);
-        closeModal();
+        try {
+            // Determine the public value based on the new status
+            const isPublic = newStatus === 'public';
+
+            // Call the API to update the docpack
+            const response = await fetch(`/api/docpacks/${docpack.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ public: isPublic }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Failed to update docpack:', error);
+                alert('Failed to update docpack: ' + (error.error || 'Unknown error'));
+                return;
+            }
+
+            console.log(`Successfully updated ${docpack.name} to status: ${newStatus}`);
+
+            // Remove from commons if unpublished
+            if (!isPublic) {
+                publicDocpacks = publicDocpacks.filter(d => d.id !== docpack.id);
+            }
+
+            closeModal();
+        } catch (error) {
+            console.error('Error updating docpack:', error);
+            alert('Failed to update docpack');
+        }
     }
 </script>
 
