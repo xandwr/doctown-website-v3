@@ -29,7 +29,7 @@
 >
 	<div class="flex items-start justify-between mb-2">
 		<h3 class="text-lg font-semibold text-white flex-1">
-			{docpack.name}
+			{docpack.full_name.replace('/', ':')}
 		</h3>
 		<span
 			class="ml-2 px-2 py-0.5 text-xs rounded border font-mono {statusColorClasses[
