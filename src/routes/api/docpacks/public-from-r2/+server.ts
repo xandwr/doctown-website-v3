@@ -82,7 +82,7 @@ export const GET: RequestHandler = async () => {
         // Only include public docpacks
         if (manifest.public === true) {
           publicDocpacks.push({
-            file_url: `https://doctown.dev/api/docpacks/download?path=${encodeURIComponent(obj.Key)}`,
+            file_url: `https://www.doctown.dev/api/docpacks/download?path=${encodeURIComponent(obj.Key)}`,
             name: manifest.project?.name || "Unknown",
             full_name:
               manifest.project?.repo?.split("/").slice(-2).join("/") ||

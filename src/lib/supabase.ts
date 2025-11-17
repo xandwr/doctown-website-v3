@@ -294,7 +294,7 @@ export async function getPublicDocpacks() {
     docpacks?.map((pack: any) => {
       // Extract R2 path from file_url if it's a full R2 URL
       // E.g., "https://...r2.cloudflarestorage.com/doctown-central/docpacks/uuid/file.docpack"
-      // becomes "https://doctown.dev/api/docpacks/download?path=docpacks/uuid/file.docpack"
+      // becomes "https://www.doctown.dev/api/docpacks/download?path=docpacks/uuid/file.docpack"
       let file_url = pack.file_url;
       if (file_url) {
         // Check if it's a direct R2 URL
@@ -303,7 +303,7 @@ export async function getPublicDocpacks() {
           const pathMatch = file_url.match(/\/doctown-central\/(.+)$/);
           if (pathMatch) {
             // Convert to proxy URL with full domain for CLI compatibility
-            file_url = `https://doctown.dev/api/docpacks/download?path=${encodeURIComponent(pathMatch[1])}`;
+            file_url = `https://www.doctown.dev/api/docpacks/download?path=${encodeURIComponent(pathMatch[1])}`;
           }
         }
       }
