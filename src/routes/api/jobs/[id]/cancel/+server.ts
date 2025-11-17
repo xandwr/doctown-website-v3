@@ -1,10 +1,7 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { createClient } from "@supabase/supabase-js";
-import {
-  PRIVATE_SUPABASE_URL,
-  PRIVATE_SUPABASE_ANON_KEY,
-} from "$env/static/private";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "$env/static/private";
 
 export const POST: RequestHandler = async ({ params, cookies }) => {
   const jobId = params.id;
@@ -14,10 +11,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient(
-    PRIVATE_SUPABASE_URL,
-    PRIVATE_SUPABASE_ANON_KEY,
-  );
+  const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
   // Verify session and get user
   const {
