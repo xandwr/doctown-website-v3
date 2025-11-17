@@ -175,6 +175,32 @@ export interface Database {
           updated_at?: string;
         };
       };
+      job_logs: {
+        Row: {
+          id: string;
+          job_id: string;
+          timestamp: string;
+          level: "info" | "warning" | "error" | "debug";
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          job_id: string;
+          timestamp?: string;
+          level?: "info" | "warning" | "error" | "debug";
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          job_id?: string;
+          timestamp?: string;
+          level?: "info" | "warning" | "error" | "debug";
+          message?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }

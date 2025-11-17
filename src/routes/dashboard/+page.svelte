@@ -4,6 +4,7 @@
 	import RepoModal from "$lib/components/RepoModal.svelte";
 	import DocpackCard from "$lib/components/DocpackCard.svelte";
 	import DocpackConfigModal from "$lib/components/DocpackConfigModal.svelte";
+	import BuildLogs from "$lib/components/BuildLogs.svelte";
 	import type { Docpack, DocpackStatus } from "$lib/types";
 
 	interface GitHubRepo {
@@ -24,6 +25,8 @@
 	let availableRepos = $state<GitHubRepo[]>([]);
 	let selectedRepo = $state<GitHubRepo | null>(null);
 	let selectedDocpack = $state<Docpack | null>(null);
+	let showBuildLogs = $state(false);
+	let buildLogsJobId = $state<string | null>(null);
 	let repoModalPosition = $state<{
 		top: number;
 		left: number;
@@ -53,6 +56,13 @@
 	}
 
 	function openDocpackModal(docpack: Docpack, event: MouseEvent) {
+		// If docpack is building or pending, show logs instead
+		if (docpack.status === 'building' || docpack.status === 'pending') {
+			buildLogsJobId = docpack.id;
+			showBuildLogs = true;
+			return;
+		}
+
 		const target = event.currentTarget as HTMLElement;
 		const rect = target.getBoundingClientRect();
 
@@ -62,6 +72,11 @@
 			width: rect.width,
 		};
 		selectedDocpack = docpack;
+	}
+
+	function closeBuildLogs() {
+		showBuildLogs = false;
+		buildLogsJobId = null;
 	}
 
 	function closeDocpackModal() {
@@ -355,3 +370,7 @@
 	onStatusUpdate={handleStatusUpdate}
 	onCancel={handleCancelDocpack}
 />
+
+{#if showBuildLogs && buildLogsJobId}
+	<BuildLogs jobId={buildLogsJobId} onClose={closeBuildLogs} />
+{/if}
