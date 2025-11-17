@@ -1,11 +1,11 @@
 import type { RequestHandler } from "./$types";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
-import JSZip from "jszip";
+import { supabase } from "$lib/supabase";
 
 /**
  * Download proxy endpoint for public docpacks.
- * Accepts ?path=<r2-key> and streams the file if the manifest is public.
+ * Accepts ?path=<r2-key> and streams the file if marked as public in the database.
  */
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -48,32 +48,28 @@ export const GET: RequestHandler = async ({ url }) => {
       });
     }
 
-    // Convert stream to buffer
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of getResponse.Body as any) {
-      chunks.push(chunk);
-    }
-    const buffer = Buffer.concat(chunks);
+    // Verify the docpack is public by checking the database
+    // The file_url in database contains the full R2 path, we need to find docpack by matching the path
+    const { data: docpacks, error: dbError } = await supabase
+      .from("docpacks")
+      .select("public, file_url")
+      .eq("public", true);
 
-    // Verify the docpack is public by checking manifest
-    const zip = await JSZip.loadAsync(buffer);
-    const manifestFile = zip.file("manifest.json");
-
-    if (!manifestFile) {
+    if (dbError) {
+      console.error("Database error:", dbError);
       return new Response(
-        JSON.stringify({ error: "Invalid docpack: no manifest" }),
+        JSON.stringify({ error: "Failed to verify docpack status" }),
         {
-          status: 400,
+          status: 500,
           headers: { "Content-Type": "application/json" },
         },
       );
     }
 
-    const manifestText = await manifestFile.async("text");
-    const manifest = JSON.parse(manifestText);
+    // Check if this path matches any public docpack
+    const isPublic = docpacks?.some((dp) => dp.file_url?.includes(path));
 
-    // Only allow download if public
-    if (manifest.public !== true) {
+    if (!isPublic) {
       return new Response(
         JSON.stringify({ error: "This docpack is not public" }),
         {
@@ -82,6 +78,13 @@ export const GET: RequestHandler = async ({ url }) => {
         },
       );
     }
+
+    // Convert stream to buffer
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of getResponse.Body as any) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
 
     // Return the file
     return new Response(buffer, {
