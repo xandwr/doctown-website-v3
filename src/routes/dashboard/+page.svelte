@@ -227,32 +227,81 @@
 		console.log(`Updated ${docpack.name} to status: ${newStatus}`);
 	}
 
-	function handleCancelDocpack(docpack: Docpack) {
-		// Remove docpack from docpacks list
-		docpacks = docpacks.filter(d => d.id !== docpack.id);
+	async function handleCancelDocpack(docpack: Docpack) {
+		// If the docpack is building or pending, cancel the job via API
+		if (docpack.status === 'building' || docpack.status === 'pending') {
+			try {
+				const response = await fetch(`/api/jobs/${docpack.id}/cancel`, {
+					method: 'POST',
+				});
 
-		// Find the original repo and add it back to available repos
-		const repoId = parseInt(docpack.id.replace('docpack-', ''));
-		const repoData: GitHubRepo = {
-			id: repoId,
-			name: docpack.name,
-			full_name: docpack.full_name,
-			description: docpack.description || null,
-			html_url: docpack.repo_url,
-			private: docpack.is_private || false,
-			updated_at: docpack.updated_at,
-			stargazers_count: 0,
-			language: docpack.language || null,
-		};
+				if (!response.ok) {
+					const error = await response.json();
+					console.error('Failed to cancel job:', error);
+					alert('Failed to cancel job: ' + (error.error || 'Unknown error'));
+					return;
+				}
 
-		availableRepos = [...availableRepos, repoData].sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
+				// Stop polling for this job
+				const intervalId = pollingIntervals.get(docpack.id);
+				if (intervalId) {
+					clearInterval(intervalId);
+					pollingIntervals.delete(docpack.id);
+				}
 
-		closeDocpackModal();
+				// Remove docpack from docpacks list
+				docpacks = docpacks.filter(d => d.id !== docpack.id);
 
-		// Placeholder for actual API call
-		console.log(`Cancelled and removed docpack: ${docpack.name}`);
+				// Find the original repo and add it back to available repos
+				const repoData: GitHubRepo = {
+					id: Date.now(), // Generate a new ID since we don't have the original
+					name: docpack.name,
+					full_name: docpack.full_name,
+					description: docpack.description || null,
+					html_url: docpack.repo_url,
+					private: docpack.is_private || false,
+					updated_at: docpack.updated_at,
+					stargazers_count: 0,
+					language: docpack.language || null,
+				};
+
+				availableRepos = [...availableRepos, repoData].sort((a, b) =>
+					a.name.localeCompare(b.name)
+				);
+
+				closeDocpackModal();
+				closeBuildLogs();
+
+				console.log(`Cancelled and removed docpack: ${docpack.name}`);
+			} catch (error) {
+				console.error('Error cancelling job:', error);
+				alert('Failed to cancel job');
+			}
+		} else {
+			// For non-building docpacks, just remove them from the list
+			docpacks = docpacks.filter(d => d.id !== docpack.id);
+
+			// Find the original repo and add it back to available repos
+			const repoData: GitHubRepo = {
+				id: Date.now(),
+				name: docpack.name,
+				full_name: docpack.full_name,
+				description: docpack.description || null,
+				html_url: docpack.repo_url,
+				private: docpack.is_private || false,
+				updated_at: docpack.updated_at,
+				stargazers_count: 0,
+				language: docpack.language || null,
+			};
+
+			availableRepos = [...availableRepos, repoData].sort((a, b) =>
+				a.name.localeCompare(b.name)
+			);
+
+			closeDocpackModal();
+
+			console.log(`Cancelled and removed docpack: ${docpack.name}`);
+		}
 	}
 
 	async function handleDeleteDocpack(docpack: Docpack) {
@@ -397,5 +446,14 @@
 />
 
 {#if showBuildLogs && buildLogsJobId}
-	<BuildLogs jobId={buildLogsJobId} onClose={closeBuildLogs} />
+	<BuildLogs
+		jobId={buildLogsJobId}
+		onClose={closeBuildLogs}
+		onCancel={() => {
+			const docpack = docpacks.find(d => d.id === buildLogsJobId);
+			if (docpack) {
+				handleCancelDocpack(docpack);
+			}
+		}}
+	/>
 {/if}

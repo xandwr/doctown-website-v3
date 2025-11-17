@@ -7,9 +7,10 @@
 	interface BuildLogsProps {
 		jobId: string;
 		onClose?: () => void;
+		onCancel?: () => void;
 	}
 
-	let { jobId, onClose }: BuildLogsProps = $props();
+	let { jobId, onClose, onCancel }: BuildLogsProps = $props();
 
 	let logs = $state<JobLog[]>([]);
 	let isLoading = $state(true);
@@ -125,15 +126,26 @@
 				<h2 class="text-lg font-bold text-emerald-400 font-mono">Build Logs</h2>
 				<span class="text-xs text-white/50 font-mono">{jobId.slice(0, 8)}</span>
 			</div>
-			<button
-				onclick={onClose}
-				class="text-white/50 hover:text-white transition-colors"
-				aria-label="Close logs"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-				</svg>
-			</button>
+			<div class="flex items-center gap-2">
+				{#if onCancel}
+					<button
+						onclick={onCancel}
+						class="px-3 py-1.5 text-sm font-mono bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded transition-colors"
+						aria-label="Cancel job"
+					>
+						Cancel Job
+					</button>
+				{/if}
+				<button
+					onclick={onClose}
+					class="text-white/50 hover:text-white transition-colors"
+					aria-label="Close logs"
+				>
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
 		</div>
 
 		<!-- Logs Content -->
