@@ -78,7 +78,7 @@
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					repo: repo.full_name,
+					repo: repo.html_url,
 					git_ref: 'main', // Default to main branch
 				}),
 			});
