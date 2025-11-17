@@ -6,25 +6,7 @@ import {
   supabase,
   type Job,
 } from "$lib/supabase";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import {
-  BUCKET_ACCESS_KEY_ID,
-  BUCKET_SECRET_ACCESS_KEY,
-  BUCKET_S3_ENDPOINT,
-} from "$env/static/private";
 import { env } from "$env/dynamic/private";
-
-// Initialize S3 client for R2
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: BUCKET_S3_ENDPOINT,
-  credentials: {
-    accessKeyId: BUCKET_ACCESS_KEY_ID,
-    secretAccessKey: BUCKET_SECRET_ACCESS_KEY,
-  },
-});
-
-const BUCKET_NAME = "docpacks";
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -52,18 +34,17 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse multipart form data
-    const formData = await request.formData();
-    const jobId = formData.get("job_id") as string;
-    const file = formData.get("file") as File;
+    // Parse JSON body (no longer multipart)
+    const body = await request.json();
+    const { job_id: jobId, file_url: fileUrl } = body;
 
     // Validate input
     if (!jobId || typeof jobId !== "string") {
       return json({ error: "Invalid or missing job_id" }, { status: 400 });
     }
 
-    if (!file || !(file instanceof File)) {
-      return json({ error: "Invalid or missing file" }, { status: 400 });
+    if (!fileUrl || typeof fileUrl !== "string") {
+      return json({ error: "Invalid or missing file_url" }, { status: 400 });
     }
 
     // Verify job exists and is in 'building' status
@@ -83,24 +64,6 @@ export const POST: RequestHandler = async ({ request }) => {
         { status: 400 },
       );
     }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `${jobId}-${timestamp}.docpack`;
-
-    // Upload file to R2
-    const fileBuffer = await file.arrayBuffer();
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: filename,
-      Body: Buffer.from(fileBuffer),
-      ContentType: "application/zip",
-    });
-
-    await s3Client.send(uploadCommand);
-
-    // Construct public URL
-    const fileUrl = `${BUCKET_S3_ENDPOINT}/${BUCKET_NAME}/${filename}`;
 
     // Extract repo name from job.repo (e.g., "https://github.com/user/repo" -> "user/repo")
     const repoMatch = job.repo.match(/github\.com\/(.+?)(?:\.git)?$/);
