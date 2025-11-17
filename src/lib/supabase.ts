@@ -291,23 +291,41 @@ export async function getPublicDocpacks() {
 
   // Transform the data to match the frontend Docpack type
   return (
-    docpacks?.map((pack: any) => ({
-      id: pack.id,
-      name: pack.name,
-      full_name: pack.full_name,
-      description: pack.description,
-      file_url: pack.file_url,
-      repo_url: pack.repo_url,
-      commit_hash: pack.commit_hash,
-      version: pack.version,
-      language: pack.language,
-      created_at: pack.created_at,
-      updated_at: pack.updated_at,
-      // Public docpacks have status "public"
-      status: "public",
-      is_private: false,
-      job_id: pack.job_id,
-    })) || []
+    docpacks?.map((pack: any) => {
+      // Extract R2 path from file_url if it's a full R2 URL
+      // E.g., "https://...r2.cloudflarestorage.com/doctown-central/docpacks/uuid/file.docpack"
+      // becomes "https://doctown.dev/api/docpacks/download?path=docpacks/uuid/file.docpack"
+      let file_url = pack.file_url;
+      if (file_url) {
+        // Check if it's a direct R2 URL
+        if (file_url.includes("r2.cloudflarestorage.com")) {
+          // Extract path after bucket name (e.g., "docpacks/uuid/file.docpack")
+          const pathMatch = file_url.match(/\/doctown-central\/(.+)$/);
+          if (pathMatch) {
+            // Convert to proxy URL with full domain for CLI compatibility
+            file_url = `https://doctown.dev/api/docpacks/download?path=${encodeURIComponent(pathMatch[1])}`;
+          }
+        }
+      }
+
+      return {
+        id: pack.id,
+        name: pack.name,
+        full_name: pack.full_name,
+        description: pack.description,
+        file_url: file_url,
+        repo_url: pack.repo_url,
+        commit_hash: pack.commit_hash,
+        version: pack.version,
+        language: pack.language,
+        created_at: pack.created_at,
+        updated_at: pack.updated_at,
+        // Public docpacks have status "public"
+        status: "public",
+        is_private: false,
+        job_id: pack.job_id,
+      };
+    }) || []
   );
 }
 
