@@ -5,6 +5,7 @@ import { RUNPOD_ENDPOINT_ID, RUNPOD_API_KEY } from "$env/static/private";
  */
 export interface TriggerBuildParams {
   job_id: string;
+  user_id: string;
   repo: string;
   git_ref: string;
   token: string;
@@ -28,7 +29,7 @@ export interface RunPodResponse {
 export async function triggerBuild(
   params: TriggerBuildParams,
 ): Promise<RunPodResponse> {
-  const { job_id, repo, git_ref, token } = params;
+  const { job_id, user_id, repo, git_ref, token } = params;
 
   // Construct the RunPod API endpoint URL
   const url = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/run`;
@@ -43,6 +44,7 @@ export async function triggerBuild(
       body: JSON.stringify({
         input: {
           job_id,
+          user_id,
           repo,
           git_ref,
           github_token: token,

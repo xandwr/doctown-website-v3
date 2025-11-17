@@ -33,6 +33,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     // Don't await this to avoid blocking the response
     triggerBuild({
       job_id: job.id,
+      user_id: locals.user.id,
       repo,
       git_ref,
       token: locals.user.access_token,
