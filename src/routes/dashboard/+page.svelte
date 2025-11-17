@@ -254,6 +254,30 @@
 		// Placeholder for actual API call
 		console.log(`Cancelled and removed docpack: ${docpack.name}`);
 	}
+
+	async function handleDeleteDocpack(docpack: Docpack) {
+		try {
+			const response = await fetch(`/api/docpacks/${docpack.id}`, {
+				method: 'DELETE',
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				console.error('Failed to delete docpack:', error);
+				alert('Failed to delete docpack: ' + (error.error || 'Unknown error'));
+				return;
+			}
+
+			// Remove from list
+			docpacks = docpacks.filter(d => d.id !== docpack.id);
+			closeDocpackModal();
+
+			console.log(`Deleted docpack: ${docpack.name}`);
+		} catch (error) {
+			console.error('Error deleting docpack:', error);
+			alert('Failed to delete docpack');
+		}
+	}
 </script>
 
 <div class="h-full p-8">
@@ -369,6 +393,7 @@
 	onClose={closeDocpackModal}
 	onStatusUpdate={handleStatusUpdate}
 	onCancel={handleCancelDocpack}
+	onDelete={handleDeleteDocpack}
 />
 
 {#if showBuildLogs && buildLogsJobId}

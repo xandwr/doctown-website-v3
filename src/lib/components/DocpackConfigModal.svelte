@@ -8,17 +8,20 @@
         onClose,
         onStatusUpdate,
         onCancel,
+        onDelete,
     }: {
         docpack: Docpack | null;
         position: { top: number; left: number; width: number } | null;
         onClose: () => void;
         onStatusUpdate: (docpack: Docpack, newStatus: DocpackStatus) => void;
         onCancel?: (docpack: Docpack) => void;
+        onDelete?: (docpack: Docpack) => void;
     } = $props();
 
     let isVisible = $derived(!!docpack && !!position);
     let canPublish = $derived(docpack?.status === "valid");
     let isPublic = $derived(docpack?.status === "public");
+    let showDeleteConfirm = $state(false);
 
     // Prevent body scroll when modal is open
     $effect(() => {
@@ -56,6 +59,21 @@
         if (docpack && onCancel) {
             onCancel(docpack);
         }
+    }
+
+    function handleDeleteClick() {
+        showDeleteConfirm = true;
+    }
+
+    function handleDeleteConfirm() {
+        if (docpack && onDelete) {
+            onDelete(docpack);
+            showDeleteConfirm = false;
+        }
+    }
+
+    function handleDeleteCancel() {
+        showDeleteConfirm = false;
     }
 
     const statusConfig = $derived(
@@ -367,11 +385,80 @@
 
             <!-- Footer -->
             <div class="border-t border-white/20 p-4 bg-black/20">
+                <div class="flex gap-3">
+                    {#if onDelete && !showDeleteConfirm}
+                        <button
+                            onclick={handleDeleteClick}
+                            class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 rounded-lg px-4 py-2 transition-colors font-semibold"
+                        >
+                            Delete
+                        </button>
+                    {/if}
+                    <button
+                        onclick={onClose}
+                        class="flex-1 bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2 transition-colors"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Delete Confirmation Modal -->
+{#if showDeleteConfirm && docpack}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center"
+        onclick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
+    >
+        <div class="bg-zinc-900 border border-red-500/40 rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <!-- Header -->
+            <div class="border-b border-red-500/30 p-6 bg-red-500/10">
+                <div class="flex items-center gap-3 text-red-400">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                    </svg>
+                    <h3 class="text-xl font-bold">Delete Docpack?</h3>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6">
+                <p class="text-white/80 mb-2">
+                    Are you sure you want to delete <strong class="text-white font-mono">{docpack.name}</strong>?
+                </p>
+                <p class="text-white/50 text-sm">
+                    This action cannot be undone. The docpack file and all associated data will be permanently removed.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-white/20 p-4 bg-black/20 flex gap-3">
                 <button
-                    onclick={onClose}
-                    class="w-full bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2 transition-colors"
+                    onclick={handleDeleteCancel}
+                    class="flex-1 bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2 transition-colors"
                 >
-                    Close
+                    Cancel
+                </button>
+                <button
+                    onclick={handleDeleteConfirm}
+                    class="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg px-4 py-2 transition-colors font-semibold"
+                >
+                    Yes, Delete
                 </button>
             </div>
         </div>
