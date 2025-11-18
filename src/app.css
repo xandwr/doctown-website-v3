@@ -1,6 +1,52 @@
 @import "tailwindcss";
 
+/* Liminal, Silent Hill-inspired palette */
+:root {
+  /* Base tones - concrete grays, institutional */
+  --color-void: #0a0a0a;
+  --color-concrete: #1a1a1a;
+  --color-fog: #2a2a2a;
+  --color-ash: #3a3a3a;
+  --color-dust: #4a4a4a;
+
+  /* Text - desaturated, cold */
+  --color-whisper: #a0a0a0;
+  --color-echo: #707070;
+  --color-shadow: #505050;
+
+  /* Functional accents - desaturated, unsettling */
+  --color-decay: #7a6b5e; /* Desaturated brown-gray for danger/delete */
+  --color-rust: #8a7060; /* Muted rust for warnings */
+  --color-corpse: #6b7a7a; /* Sickly blue-gray for info */
+  --color-static: #606060; /* Neutral gray for inactive states */
+
+  /* Strategic accent - only for important CTAs */
+  --color-blood: #6b3a3a; /* Dark, dried blood red - not vibrant */
+}
+
 body {
-  background-color: rgb(10, 10, 12);
-  color: white;
+  background-color: var(--color-void);
+  color: var(--color-whisper);
+  font-feature-settings:
+    "tnum" 1,
+    "zero" 1;
+}
+
+/* Minimalist scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-fog);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ash);
 }

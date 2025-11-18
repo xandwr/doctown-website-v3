@@ -15,24 +15,24 @@
 
 	const statusConfig = $derived(STATUS_CONFIG[docpack.status]);
 
-	// Color classes for status badges
+	// Color classes for status badges - liminal palette
 	const statusColorClasses: Record<string, string> = {
-		orange: "bg-orange-500/20 text-orange-400 border-orange-500/40",
-		green: "bg-green-500/20 text-green-400 border-green-500/40",
-		cyan: "bg-cyan-500/20 text-cyan-400 border-cyan-500/40",
-		red: "bg-red-500/20 text-red-400 border-red-500/40",
+		orange: "bg-rust/20 text-rust border-rust/40",
+		green: "bg-corpse/20 text-corpse border-corpse/40",
+		cyan: "bg-corpse/20 text-corpse border-corpse/40",
+		red: "bg-decay/20 text-decay border-decay/40",
 	};
 </script>
 
 <div
-	class="bg-zinc-900 border border-white/20 rounded-lg p-4 hover:border-white/40 transition-all cursor-pointer hover:shadow-lg hover:shadow-white/10"
+	class="bg-concrete/30 border border-fog p-4 hover:border-ash transition-all cursor-pointer"
 >
 	<div class="flex items-start justify-between mb-2">
-		<h3 class="text-lg font-semibold text-white flex-1">
+		<h3 class="text-lg font-semibold text-whisper flex-1">
 			{docpack.full_name.replace('/', ':')}
 		</h3>
 		<span
-			class="ml-2 px-2 py-0.5 text-xs rounded border font-mono {statusColorClasses[
+			class="ml-2 px-2 py-0.5 text-xs border font-mono {statusColorClasses[
 				statusConfig.color
 			]}"
 			title={statusConfig.description}
@@ -42,17 +42,17 @@
 	</div>
 
 	{#if docpack.description}
-		<p class="text-white/60 text-sm mb-3 line-clamp-2">
+		<p class="text-echo text-sm mb-3 line-clamp-2">
 			{docpack.description}
 		</p>
 	{/if}
 
 	<div class="flex items-center justify-between text-xs">
-		<span class="text-white/50">
+		<span class="text-shadow">
 			Updated {formatDate(docpack.updated_at)}
 		</span>
 		{#if docpack.version}
-			<span class="text-white/40 font-mono">
+			<span class="text-shadow font-mono">
 				v{docpack.version}
 			</span>
 		{/if}

@@ -1,7 +1,7 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { addJobLog } from "$lib/supabase";
-import { RUNPOD_API_KEY } from "$env/static/private";
+import { DOCTOWN_BUILDER_SHARED_SECRET } from "$env/static/private";
 
 export const POST: RequestHandler = async ({ request, params }) => {
   const jobId = params.id;
@@ -11,9 +11,9 @@ export const POST: RequestHandler = async ({ request, params }) => {
   }
 
   try {
-    // Verify the request is from RunPod using API key
+    // Verify the request is from RunPod worker using shared secret
     const authHeader = request.headers.get("authorization");
-    const expectedAuth = `Bearer ${RUNPOD_API_KEY}`;
+    const expectedAuth = `Bearer ${DOCTOWN_BUILDER_SHARED_SECRET}`;
 
     if (authHeader !== expectedAuth) {
       return json({ error: "Unauthorized" }, { status: 401 });

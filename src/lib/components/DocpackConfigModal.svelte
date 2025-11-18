@@ -80,12 +80,12 @@
         docpack ? STATUS_CONFIG[docpack.status] : null,
     );
 
-    // Color classes for status display
+    // Color classes for status display - liminal palette
     const statusColorClasses: Record<string, string> = {
-        orange: "text-orange-400 border-orange-500/40",
-        green: "text-green-400 border-green-500/40",
-        cyan: "text-cyan-400 border-cyan-500/40",
-        red: "text-red-400 border-red-500/40",
+        orange: "text-rust border-rust/40",
+        green: "text-corpse border-corpse/40",
+        cyan: "text-corpse border-corpse/40",
+        red: "text-decay border-decay/40",
     };
 </script>
 
@@ -93,26 +93,26 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+        class="fixed inset-0 bg-void/80 backdrop-blur-sm z-50 flex items-center justify-center"
         onclick={handleBackdropClick}
     >
         <div
-            class="bg-zinc-900 border border-white/30 rounded-lg shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
+            class="bg-fog border border-ash max-w-2xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
         >
             <!-- Header -->
-            <div class="border-b border-white/20 p-6">
+            <div class="border-b border-ash p-6">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
-                        <h2 class="text-2xl font-bold text-white mb-1">
+                        <h2 class="text-2xl font-bold text-whisper mb-1">
                             {docpack.name}
                         </h2>
-                        <p class="text-white/50 text-sm font-mono">
+                        <p class="text-shadow text-sm font-mono">
                             {docpack.full_name}
                         </p>
                     </div>
                     <button
-                        onclick={onClose}
-                        class="text-white/50 hover:text-white transition-colors p-1"
+                        onclick={(e) => { e.stopPropagation(); onClose(); }}
+                        class="text-shadow hover:text-whisper transition-colors p-1"
                         aria-label="Close"
                     >
                         <svg
@@ -138,12 +138,12 @@
                 <!-- Status Section -->
                 <div>
                     <h3
-                        class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                        class="text-sm font-semibold text-echo uppercase tracking-wider mb-3"
                     >
                         Status
                     </h3>
                     <div
-                        class="bg-black/30 border border-white/10 rounded-lg p-4"
+                        class="bg-concrete/50 border border-fog p-4"
                     >
                         <div class="flex items-center gap-3 mb-2">
                             <span
@@ -154,7 +154,7 @@
                                 {statusConfig?.label}
                             </span>
                         </div>
-                        <p class="text-white/60 text-sm">
+                        <p class="text-echo text-sm">
                             {statusConfig?.description}
                         </p>
                     </div>
@@ -164,11 +164,11 @@
                 {#if docpack.description}
                     <div>
                         <h3
-                            class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                            class="text-sm font-semibold text-echo uppercase tracking-wider mb-3"
                         >
                             Description
                         </h3>
-                        <p class="text-white/80 text-sm">
+                        <p class="text-whisper text-sm">
                             {docpack.description}
                         </p>
                     </div>
@@ -177,44 +177,44 @@
                 <!-- Technical Details -->
                 <div>
                     <h3
-                        class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                        class="text-sm font-semibold text-echo uppercase tracking-wider mb-3"
                     >
                         Technical Details
                     </h3>
                     <div
-                        class="bg-black/30 border border-white/10 rounded-lg p-4 space-y-2 font-mono text-sm"
+                        class="bg-concrete/50 border border-fog p-4 space-y-2 font-mono text-sm"
                     >
                         <div class="flex justify-between">
-                            <span class="text-white/50">Repository:</span>
+                            <span class="text-shadow">Repository:</span>
                             <a
                                 href={docpack.repo_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-cyan-400 hover:underline"
+                                class="text-corpse hover:underline"
                             >
                                 {docpack.full_name}
                             </a>
                         </div>
                         {#if docpack.version}
                             <div class="flex justify-between">
-                                <span class="text-white/50">Version:</span>
-                                <span class="text-white"
+                                <span class="text-shadow">Version:</span>
+                                <span class="text-whisper"
                                     >v{docpack.version}</span
                                 >
                             </div>
                         {/if}
                         {#if docpack.commit_hash}
                             <div class="flex justify-between">
-                                <span class="text-white/50">Commit:</span>
-                                <span class="text-white"
+                                <span class="text-shadow">Commit:</span>
+                                <span class="text-whisper"
                                     >{docpack.commit_hash.substring(0, 8)}</span
                                 >
                             </div>
                         {/if}
                         {#if docpack.language}
                             <div class="flex justify-between">
-                                <span class="text-white/50">Language:</span>
-                                <span class="text-white"
+                                <span class="text-shadow">Language:</span>
+                                <span class="text-whisper"
                                     >{docpack.language}</span
                                 >
                             </div>
@@ -226,14 +226,14 @@
                 {#if docpack.file_url && (docpack.status === "valid" || docpack.status === "public")}
                     <div>
                         <h3
-                            class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                            class="text-sm font-semibold text-echo uppercase tracking-wider mb-3"
                         >
                             Download
                         </h3>
                         <a
                             href={docpack.file_url}
                             download
-                            class="block w-full bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-lg px-4 py-3 font-semibold hover:bg-blue-500/30 transition-colors text-center"
+                            class="block w-full bg-corpse/20 text-corpse border border-corpse/40 px-4 py-3 font-semibold hover:bg-corpse/30 transition-colors text-center"
                         >
                             <div class="flex items-center justify-center gap-2">
                                 <svg
@@ -259,16 +259,16 @@
                 <!-- Publishing Section -->
                 <div>
                     <h3
-                        class="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3"
+                        class="text-sm font-semibold text-echo uppercase tracking-wider mb-3"
                     >
                         Publishing
                     </h3>
                     <div
-                        class="bg-black/30 border border-white/10 rounded-lg p-4"
+                        class="bg-concrete/50 border border-fog p-4"
                     >
                         {#if docpack.status === "pending"}
                             <div
-                                class="flex items-center gap-2 text-orange-400"
+                                class="flex items-center gap-2 text-rust"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -288,33 +288,33 @@
                                     >Docpack generation in progress...</span
                                 >
                             </div>
-                            <p class="text-white/50 text-xs mt-2 mb-4">
+                            <p class="text-shadow text-xs mt-2 mb-4">
                                 Once generated and validated, you'll be able to
                                 publish this docpack to the commons.
                             </p>
                             {#if onCancel}
                                 <button
                                     onclick={handleCancel}
-                                    class="w-full bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg px-4 py-2 font-semibold hover:bg-red-500/30 transition-colors"
+                                    class="w-full bg-decay/20 text-decay border border-decay/40 rounded-lg px-4 py-2 font-semibold hover:bg-decay/30 transition-colors"
                                 >
                                     Cancel and Remove
                                 </button>
                             {/if}
                         {:else if docpack.status === "valid"}
-                            <p class="text-white/70 text-sm mb-4">
+                            <p class="text-echo text-sm mb-4">
                                 This docpack is valid and ready to be published.
                                 Publishing will make it available globally in
                                 the commons for all users.
                             </p>
                             <button
                                 onclick={handlePublish}
-                                class="w-full bg-green-500/20 text-green-400 border border-green-500/40 rounded-lg px-4 py-2 font-semibold hover:bg-green-500/30 transition-colors"
+                                class="w-full bg-corpse/20 text-corpse border border-corpse/40 rounded-lg px-4 py-2 font-semibold hover:bg-corpse/30 transition-colors"
                             >
                                 Publish to Commons
                             </button>
                         {:else if docpack.status === "public"}
                             <div
-                                class="flex items-center gap-2 text-cyan-400 mb-4"
+                                class="flex items-center gap-2 text-corpse mb-4"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -334,19 +334,19 @@
                                     >Live in Commons</span
                                 >
                             </div>
-                            <p class="text-white/60 text-sm mb-4">
+                            <p class="text-echo text-sm mb-4">
                                 This docpack is publicly available. Users can
                                 discover and access it from the commons.
                             </p>
                             <button
                                 onclick={handleUnpublish}
-                                class="w-full bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg px-4 py-2 font-semibold hover:bg-red-500/30 transition-colors"
+                                class="w-full bg-decay/20 text-decay border border-decay/40 rounded-lg px-4 py-2 font-semibold hover:bg-decay/30 transition-colors"
                             >
                                 Unpublish from Commons
                             </button>
                         {:else if docpack.status === "failed"}
                             <div
-                                class="flex items-center gap-2 text-red-400 mb-2"
+                                class="flex items-center gap-2 text-decay mb-2"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -366,7 +366,7 @@
                                     >Generation Failed</span
                                 >
                             </div>
-                            <p class="text-white/50 text-xs">
+                            <p class="text-shadow text-xs">
                                 The docpack generation encountered an error.
                                 Check the logs or try regenerating.
                             </p>
@@ -376,7 +376,7 @@
 
                 <!-- Future: GitHub Actions Integration Info -->
                 <div class="border-t border-white/10 pt-4">
-                    <p class="text-white/40 text-xs font-mono">
+                    <p class="text-shadow text-xs font-mono">
                         💡 Docpacks are automatically regenerated on each push
                         via GitHub Actions
                     </p>
@@ -384,19 +384,19 @@
             </div>
 
             <!-- Footer -->
-            <div class="border-t border-white/20 p-4 bg-black/20">
+            <div class="border-t border-ash p-4 bg-concrete/50">
                 <div class="flex gap-3">
                     {#if onDelete && !showDeleteConfirm}
                         <button
                             onclick={handleDeleteClick}
-                            class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 rounded-lg px-4 py-2 transition-colors font-semibold"
+                            class="bg-red-500/20 hover:bg-decay/30 text-decay border border-red-500/40 rounded-lg px-4 py-2 transition-colors font-semibold"
                         >
                             Delete
                         </button>
                     {/if}
                     <button
                         onclick={onClose}
-                        class="flex-1 bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2 transition-colors"
+                        class="flex-1 bg-fog hover:bg-ash text-whisper rounded-lg px-4 py-2 transition-colors"
                     >
                         Close
                     </button>
@@ -411,13 +411,13 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center"
+        class="fixed inset-0 bg-void/90 backdrop-blur-sm z-[60] flex items-center justify-center"
         onclick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
     >
-        <div class="bg-zinc-900 border border-red-500/40 rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="bg-fog border border-decay/60 max-w-md w-full mx-4 overflow-hidden">
             <!-- Header -->
-            <div class="border-b border-red-500/30 p-6 bg-red-500/10">
-                <div class="flex items-center gap-3 text-red-400">
+            <div class="border-b border-decay/50 p-6 bg-decay/20">
+                <div class="flex items-center gap-3 text-decay">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="h-6 w-6"
@@ -441,22 +441,22 @@
                 <p class="text-white/80 mb-2">
                     Are you sure you want to delete <strong class="text-white font-mono">{docpack.name}</strong>?
                 </p>
-                <p class="text-white/50 text-sm">
+                <p class="text-shadow text-sm">
                     This action cannot be undone. The docpack file and all associated data will be permanently removed.
                 </p>
             </div>
 
             <!-- Footer -->
-            <div class="border-t border-white/20 p-4 bg-black/20 flex gap-3">
+            <div class="border-t border-ash p-4 bg-concrete/50 flex gap-3">
                 <button
                     onclick={handleDeleteCancel}
-                    class="flex-1 bg-white/10 hover:bg-white/20 text-white rounded-lg px-4 py-2 transition-colors"
+                    class="flex-1 bg-fog hover:bg-ash text-whisper rounded-lg px-4 py-2 transition-colors"
                 >
                     Cancel
                 </button>
                 <button
                     onclick={handleDeleteConfirm}
-                    class="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg px-4 py-2 transition-colors font-semibold"
+                    class="flex-1 bg-blood hover:bg-decay text-whisper px-4 py-2 transition-colors font-semibold"
                 >
                     Yes, Delete
                 </button>

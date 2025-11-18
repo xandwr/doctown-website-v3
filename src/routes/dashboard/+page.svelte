@@ -376,15 +376,15 @@
 			<!-- Left Pane: Docpacks -->
 			<div class="flex flex-col min-h-0">
 				<div class="flex items-baseline gap-3 mb-6">
-					<h2 class="text-2xl font-bold tracking-tight">docpacks</h2>
-					<span class="text-sm text-emerald-400 font-mono"
+					<h2 class="text-2xl font-bold tracking-tight text-whisper">docpacks</h2>
+					<span class="text-sm text-shadow font-mono"
 						>// {docpacks.length}
 						{docpacks.length === 1 ? "pack" : "packs"}</span
 					>
 				</div>
 				{#if docpacks.length > 0}
 					<div
-						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent border border-emerald-500/20 rounded-lg bg-black/30"
+						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent border border-fog bg-concrete/50"
 					>
 						<div class="space-y-3 p-4">
 						{#each docpacks as docpack (docpack.id)}
@@ -399,13 +399,12 @@
 					</div>
 				{:else}
 					<div
-						class="bg-black/30 border border-emerald-500/20 rounded-lg p-8 text-center flex-1 flex flex-col items-center justify-center"
+						class="bg-concrete/50 border border-fog p-8 text-center flex-1 flex flex-col items-center justify-center"
 					>
-						<div class="text-6xl mb-4">🚀</div>
-						<p class="text-emerald-400/80 font-mono text-sm mb-2">
+						<p class="text-shadow font-mono text-sm mb-2">
 							nothing here yet
 						</p>
-						<p class="text-white/40 text-xs">
+						<p class="text-shadow/60 text-xs">
 							but when there is, it'll be legendary
 						</p>
 					</div>
@@ -415,18 +414,18 @@
 			<!-- Right Pane: GitHub Repositories -->
 			<div class="flex flex-col min-h-0">
 				<div class="flex items-baseline gap-3 mb-6">
-					<h2 class="text-2xl font-bold tracking-tight">
+					<h2 class="text-2xl font-bold tracking-tight text-whisper">
 						repositories
 					</h2>
-					<span class="text-sm text-cyan-400 font-mono"
+					<span class="text-sm text-shadow font-mono"
 						>// {availableRepos.length} repos</span
 					>
 				</div>
 				{#await data.repos}
-					<div class="bg-black/30 border border-cyan-500/20 rounded-lg p-6 flex-1 flex items-center justify-center">
+					<div class="bg-concrete/50 border border-fog p-6 flex-1 flex items-center justify-center">
 						<div class="text-center">
-							<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mb-4"></div>
-							<p class="text-cyan-400/80 font-mono text-sm">
+							<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-corpse mb-4"></div>
+							<p class="text-echo font-mono text-sm">
 								loading repositories...
 							</p>
 						</div>
@@ -434,7 +433,7 @@
 				{:then repos}
 					{#if repos.length > 0}
 						<div
-							class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent border border-cyan-500/20 rounded-lg bg-black/30"
+							class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent border border-fog bg-concrete/50"
 						>
 							<div class="space-y-3 p-4">
 							{#each repos as repo (repo.id)}
@@ -450,15 +449,15 @@
 							</div>
 						</div>
 					{:else}
-						<div class="bg-black/30 border border-cyan-500/20 rounded-lg p-6 flex-1 flex items-center justify-center">
-							<p class="text-red-400/80 font-mono text-sm">
+						<div class="bg-concrete/50 border border-fog p-6 flex-1 flex items-center justify-center">
+							<p class="text-decay font-mono text-sm">
 								No repositories found
 							</p>
 						</div>
 					{/if}
 				{:catch error}
-					<div class="bg-black/30 border border-red-500/20 rounded-lg p-6 flex-1 flex items-center justify-center">
-						<p class="text-red-400/80 font-mono text-sm">
+					<div class="bg-concrete/50 border border-fog p-6 flex-1 flex items-center justify-center">
+						<p class="text-decay font-mono text-sm">
 							Failed to load repositories
 						</p>
 					</div>

@@ -35,55 +35,56 @@
 	}
 
 	function getLanguageColor(language: string): string {
+		// Desaturated, liminal language colors
 		const colors: Record<string, string> = {
-			JavaScript: "bg-yellow-400",
-			TypeScript: "bg-blue-500",
-			Python: "bg-blue-400",
-			Java: "bg-orange-600",
-			Go: "bg-cyan-400",
-			Rust: "bg-orange-500",
-			Ruby: "bg-red-500",
-			PHP: "bg-indigo-400",
-			C: "bg-gray-500",
-			"C++": "bg-pink-500",
-			"C#": "bg-purple-500",
-			Swift: "bg-orange-400",
-			Kotlin: "bg-purple-400",
-			Dart: "bg-blue-400",
-			HTML: "bg-orange-500",
-			CSS: "bg-blue-500",
-			Shell: "bg-green-500",
-			Svelte: "bg-orange-600",
-			Vue: "bg-emerald-500",
-			React: "bg-cyan-400",
-			Dockerfile: "bg-blue-600",
-			Makefile: "bg-orange-400",
+			JavaScript: "bg-rust",
+			TypeScript: "bg-corpse",
+			Python: "bg-corpse",
+			Java: "bg-rust",
+			Go: "bg-corpse",
+			Rust: "bg-rust",
+			Ruby: "bg-decay",
+			PHP: "bg-corpse",
+			C: "bg-static",
+			"C++": "bg-static",
+			"C#": "bg-static",
+			Swift: "bg-rust",
+			Kotlin: "bg-static",
+			Dart: "bg-corpse",
+			HTML: "bg-rust",
+			CSS: "bg-corpse",
+			Shell: "bg-static",
+			Svelte: "bg-rust",
+			Vue: "bg-corpse",
+			React: "bg-corpse",
+			Dockerfile: "bg-corpse",
+			Makefile: "bg-rust",
 		};
-		return colors[language] || "bg-cyan-500";
+		return colors[language] || "bg-corpse";
 	}
 </script>
 
 <button
 	onclick={handleClick}
-	class="w-full text-left bg-black/20 rounded p-4 hover:bg-zinc-950 transition-all group cursor-pointer {isSelected
-		? 'border-2 border-cyan-500/70 shadow-lg shadow-cyan-500/20'
-		: 'border border-white/10 hover:border-cyan-500/50'}"
+	class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all group cursor-pointer {isSelected
+		? 'border border-corpse/70'
+		: 'border border-fog hover:border-ash'}"
 >
 	<div class="flex items-center gap-2 mb-2">
 		<h3
-			class="text-base font-bold text-white truncate flex-1 font-mono group-hover:text-cyan-400 transition-colors"
+			class="text-base font-bold text-whisper truncate flex-1 font-mono group-hover:text-white transition-colors"
 		>
 			{repo.name}
 		</h3>
 		{#if repo.private}
 			<span
-				class="px-2 py-0.5 text-xs bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded font-mono shrink-0"
+				class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 font-mono shrink-0"
 			>
 				Private
 			</span>
 		{:else}
 			<span
-				class="px-2 py-0.5 text-xs bg-green-500/10 text-green-400 border border-green-500/30 rounded font-mono shrink-0"
+				class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 font-mono shrink-0"
 			>
 				Public
 			</span>
@@ -91,16 +92,16 @@
 	</div>
 
 	{#if repo.description}
-		<p class="text-white/50 text-xs mb-3 line-clamp-2 font-light">
+		<p class="text-echo text-xs mb-3 line-clamp-2 font-light">
 			{repo.description}
 		</p>
 	{/if}
 
-	<div class="flex items-center gap-3 text-xs text-white/40 font-mono">
+	<div class="flex items-center gap-3 text-xs text-shadow font-mono">
 		{#if repo.language}
 			<span class="flex items-center gap-1.5">
 				<span
-					class="w-2 h-2 rounded-full {getLanguageColor(
+					class="w-2 h-2 {getLanguageColor(
 						repo.language,
 					)}"
 				></span>
@@ -109,7 +110,7 @@
 		{/if}
 		{#if repo.stargazers_count > 0}
 			<span class="flex items-center gap-1">
-				<span class="text-yellow-500">★</span>
+				<span class="text-rust">★</span>
 				{repo.stargazers_count}
 			</span>
 		{/if}

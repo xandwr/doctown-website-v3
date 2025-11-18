@@ -45,13 +45,13 @@
 </script>
 
 {#if repo && position}
-    <!-- Blur backdrop -->
+    <!-- Liminal backdrop -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="fixed inset-0 backdrop-blur-xs z-50"
+        class="fixed inset-0 backdrop-blur-sm z-50"
         onclick={handleBackdropClick}
-        style="background-color: rgba(0, 0, 0, 0.15);"
+        style="background-color: rgba(10, 10, 10, 0.5);"
     ></div>
 
     <!-- Selected card overlay (outside blur) -->
@@ -60,39 +60,39 @@
         style="top: {position.top}px; left: {position.left}px; width: {position.width}px;"
     >
         <div
-            class="bg-black border-2 border-cyan-500/70 rounded p-2 shadow-lg shadow-cyan-500/20"
+            class="bg-concrete border border-corpse/70 p-2"
         >
             <div class="flex items-start justify-between mb-2">
                 <h3
-                    class="text-base font-bold text-white truncate flex-1 font-mono"
+                    class="text-base font-bold text-whisper truncate flex-1 font-mono"
                 >
                     {repo.name}
                 </h3>
                 {#if repo.private}
                     <span
-                        class="ml-2 px-2 py-0.5 text-xs bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded font-mono"
+                        class="ml-2 px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 font-mono"
                     >
                         private
                     </span>
                 {/if}
             </div>
             {#if repo.description}
-                <p class="text-white/50 text-xs mb-3 line-clamp-2 font-light">
+                <p class="text-echo text-xs mb-3 line-clamp-2 font-light">
                     {repo.description}
                 </p>
             {/if}
             <div
-                class="flex items-center gap-3 text-xs text-white/40 font-mono"
+                class="flex items-center gap-3 text-xs text-shadow font-mono"
             >
                 {#if repo.language}
                     <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                        <span class="w-2 h-2 bg-corpse"></span>
                         {repo.language}
                     </span>
                 {/if}
                 {#if repo.stargazers_count > 0}
                     <span class="flex items-center gap-1">
-                        <span class="text-yellow-500">★</span>
+                        <span class="text-rust">★</span>
                         {repo.stargazers_count}
                     </span>
                 {/if}
@@ -109,20 +109,20 @@
 
     <!-- Dropdown menu -->
     <div
-        class="absolute z-60 bg-zinc-900/50 border border-white/20 rounded shadow-2xl animate-in slide-in-from-top-2 duration-200"
+        class="absolute z-60 bg-fog/90 border border-ash animate-in slide-in-from-top-2 duration-200"
         style="top: {position.top -
             8}px; left: {position.left}px; width: {position.width}px; transform: translateY(-100%);"
     >
         <button
             onclick={handleVisitGitHub}
-            class="w-full text-left px-3 py-2 hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 font-mono text-xs transition-all border-b border-white/10"
+            class="w-full text-left px-3 py-2 hover:bg-ash text-corpse hover:text-whisper font-mono text-xs transition-all border-b border-ash"
         >
             Visit on GitHub
         </button>
 
         <button
             onclick={handleCreateDocpack}
-            class="w-full text-left px-3 py-2 hover:bg-emerald-500/10 text-emerald-400 hover:text-emerald-300 font-mono text-xs transition-all rounded-b"
+            class="w-full text-left px-3 py-2 hover:bg-ash text-corpse hover:text-whisper font-mono text-xs transition-all"
         >
             Generate Docs
         </button>
