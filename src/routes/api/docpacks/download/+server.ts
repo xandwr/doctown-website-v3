@@ -4,10 +4,12 @@ import { env } from "$env/dynamic/private";
 import { supabase } from "$lib/supabase";
 
 /**
- * Download proxy endpoint for public docpacks.
- * Accepts ?path=<r2-key> and streams the file if marked as public in the database.
+ * Download proxy endpoint for docpacks.
+ * Accepts ?path=<r2-key> and streams the file if:
+ * 1. The docpack is marked as public, OR
+ * 2. The authenticated user owns the docpack
  */
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
   try {
     const path = url.searchParams.get("path");
 
@@ -42,6 +44,52 @@ export const GET: RequestHandler = async ({ url }) => {
       );
     }
 
+    // Check authorization: docpack must be either public OR owned by the current user
+    // First, find the docpack by matching the file_url path
+    const { data: docpacks, error: dbError } = await supabase
+      .from("docpacks")
+      .select("id, public, file_url, job_id, jobs!inner(user_id)");
+
+    if (dbError) {
+      console.error("Database error:", dbError);
+      return new Response(
+        JSON.stringify({ error: "Failed to verify docpack status" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Find the docpack that matches this path
+    const docpack: any = docpacks?.find((dp: any) =>
+      dp.file_url?.includes(path),
+    );
+
+    if (!docpack) {
+      return new Response(JSON.stringify({ error: "Docpack not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if user has access: either public OR user owns it
+    const isPublic = docpack.public === true;
+    const isOwner = locals.user && docpack.jobs?.user_id === locals.user.id;
+
+    if (!isPublic && !isOwner) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Access denied. This docpack is not public and you do not own it.",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Initialize S3 client for R2
     const s3Client = new S3Client({
       region: "auto",
@@ -61,38 +109,10 @@ export const GET: RequestHandler = async ({ url }) => {
     const getResponse = await s3Client.send(getCommand);
 
     if (!getResponse.Body) {
-      return new Response(JSON.stringify({ error: "File not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Verify the docpack is public by checking the database
-    // The file_url in database contains the full R2 path, we need to find docpack by matching the path
-    const { data: docpacks, error: dbError } = await supabase
-      .from("docpacks")
-      .select("public, file_url")
-      .eq("public", true);
-
-    if (dbError) {
-      console.error("Database error:", dbError);
       return new Response(
-        JSON.stringify({ error: "Failed to verify docpack status" }),
+        JSON.stringify({ error: "File not found in storage" }),
         {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Check if this path matches any public docpack
-    const isPublic = docpacks?.some((dp: any) => dp.file_url?.includes(path));
-
-    if (!isPublic) {
-      return new Response(
-        JSON.stringify({ error: "This docpack is not public" }),
-        {
-          status: 403,
+          status: 404,
           headers: { "Content-Type": "application/json" },
         },
       );

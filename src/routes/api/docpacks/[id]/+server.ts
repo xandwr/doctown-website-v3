@@ -1,6 +1,8 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { supabase } from "$lib/supabase";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { env } from "$env/dynamic/private";
 
 export const PATCH: RequestHandler = async ({ params, locals, request }) => {
   // Check if user is authenticated
@@ -90,7 +92,47 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       );
     }
 
-    // Delete the docpack
+    // Delete the docpack file from R2 first
+    const fileUrl = (docpack as any).file_url;
+    if (fileUrl) {
+      try {
+        // Extract the key from the file_url
+        // E.g., "https://...r2.cloudflarestorage.com/doctown-central/docpacks/uuid/file.docpack"
+        // becomes "docpacks/uuid/file.docpack"
+        let key: string | null = null;
+
+        if (fileUrl.includes("r2.cloudflarestorage.com")) {
+          const pathMatch = fileUrl.match(/\/doctown-central\/(.+)$/);
+          if (pathMatch) {
+            key = pathMatch[1];
+          }
+        }
+
+        if (key) {
+          const s3Client = new S3Client({
+            region: "auto",
+            endpoint: env.BUCKET_S3_ENDPOINT,
+            credentials: {
+              accessKeyId: env.BUCKET_ACCESS_KEY_ID || "",
+              secretAccessKey: env.BUCKET_SECRET_ACCESS_KEY || "",
+            },
+          });
+
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: env.BUCKET_NAME || "doctown-central",
+            Key: key,
+          });
+
+          await s3Client.send(deleteCommand);
+          console.log(`Deleted docpack file from R2: ${key}`);
+        }
+      } catch (error) {
+        console.error("Error deleting file from R2:", error);
+        // Continue with database deletion even if R2 deletion fails
+      }
+    }
+
+    // Delete the docpack from database
     // Note: This will also delete related job_logs due to CASCADE
     const { error: deleteError } = await supabase
       .from("docpacks")
@@ -101,12 +143,6 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       console.error("Error deleting docpack:", deleteError);
       return json({ error: "Failed to delete docpack" }, { status: 500 });
     }
-
-    // TODO: Delete the .docpack file from S3 bucket
-    // const fileUrl = docpack.file_url;
-    // if (fileUrl) {
-    //   await deleteFromS3(fileUrl);
-    // }
 
     return json({ success: true });
   } catch (error) {
