@@ -111,36 +111,36 @@
     <div class="max-w-7xl mx-auto">
         <div class="mb-8">
             <h1 class="text-4xl font-bold tracking-tight mb-2">Commons</h1>
-            <p class="text-white/60 text-sm">
+            <p class="text-text-secondary text-sm">
                 Public documentation packages available globally for all users
             </p>
-            <p class="text-white/40 text-xs mt-1 font-mono">
+            <p class="text-text-tertiary text-xs mt-1 font-mono">
                 // Like npm or cargo, but for documentation
             </p>
         </div>
 
         <div class="flex items-baseline gap-3 mb-6">
             <h2 class="text-2xl font-bold tracking-tight">public docpacks</h2>
-            <span class="text-sm text-cyan-400 font-mono">
+            <span class="text-sm text-status-public font-mono">
                 // {publicDocpacks.length}
                 {publicDocpacks.length === 1 ? "pack" : "packs"}
             </span>
         </div>
 
         {#if isLoading}
-            <div class="bg-black/30 border border-info/20 rounded-md p-12 text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-info mb-4"></div>
-                <p class="text-info/80 font-mono text-sm">
+            <div class="bg-bg-secondary border border-primary/20 rounded-md p-12 text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                <p class="text-primary font-mono text-sm">
                     loading public docpacks...
                 </p>
             </div>
         {:else if error}
-            <div class="bg-black/30 border border-status-invalid/20 rounded-md p-12 text-center">
+            <div class="bg-bg-secondary border border-status-failed/20 rounded-md p-12 text-center">
                 <div class="text-6xl mb-4">⚠️</div>
-                <p class="text-status-invalid/80 font-mono text-sm mb-2">
+                <p class="text-status-failed font-mono text-sm mb-2">
                     {error}
                 </p>
-                <p class="text-white/40 text-xs">
+                <p class="text-text-tertiary text-xs">
                     please try again later
                 </p>
             </div>
@@ -157,13 +157,13 @@
             </div>
         {:else}
             <div
-                class="bg-black/30 border border-cyan-500/20 rounded-md p-12 text-center"
+                class="bg-bg-secondary border border-primary/20 rounded-md p-12 text-center"
             >
                 <div class="text-6xl mb-4">📚</div>
-                <p class="text-cyan-400/80 font-mono text-sm mb-2">
+                <p class="text-primary font-mono text-sm mb-2">
                     no public docpacks yet
                 </p>
-                <p class="text-white/40 text-xs">
+                <p class="text-text-tertiary text-xs">
                     be the first to publish documentation to the commons
                 </p>
             </div>

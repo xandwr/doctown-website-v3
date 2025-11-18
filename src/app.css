@@ -1,128 +1,95 @@
 @import "tailwindcss";
 
 @theme {
-  /* Tailwind v4 theme variables */
+  /* === Base Neutrals === */
+  /* Clean, minimal backgrounds - developer tool aesthetic */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #121212;
+  --color-bg-tertiary: #1a1a1a;
+  --color-bg-elevated: #1e1e1e;
+
+  --color-border-subtle: #282828;
+  --color-border-default: #333333;
+  --color-border-strong: #404040;
+
+  /* === Text Hierarchy === */
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #a8a8a8;
+  --color-text-tertiary: #707070;
+  --color-text-muted: #505050;
+
+  /* === Semantic Status Colors === */
+  /* Vibrant, purposeful - clear meaning at a glance */
+
+  /* Building/Pending - Amber */
+  --color-status-building: #fbbf24;
+  --color-status-building-bg: #fbbf24;
+
+  /* Valid/Ready - Cyan */
+  --color-status-valid: #06b6d4;
+  --color-status-valid-bg: #06b6d4;
+
+  /* Public/Live - Green */
+  --color-status-public: #10b981;
+  --color-status-public-bg: #10b981;
+
+  /* Failed/Error - Red */
+  --color-status-failed: #ef4444;
+  --color-status-failed-bg: #ef4444;
+
+  /* === Action Colors === */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+
+  /* === Language Colors === */
+  /* Vibrant, recognizable colors for each language */
+  --color-lang-rust: #ce422b;
+  --color-lang-python: #3776ab;
+  --color-lang-javascript: #f7df1e;
+  --color-lang-typescript: #3178c6;
+  --color-lang-go: #00add8;
+  --color-lang-java: #f89820;
+  --color-lang-cpp: #00599c;
+  --color-lang-ruby: #cc342d;
+  --color-lang-csharp: #239120;
+  --color-lang-php: #777bb4;
+  --color-lang-swift: #f05138;
+  --color-lang-scala: #dc322f;
+  --color-lang-shell: #89e051;
+
+  /* === Interactive States === */
+  --color-hover-bg: #252525;
+  --color-active-bg: #2a2a2a;
+  --color-focus-ring: #3b82f6;
+
+  /* === Action Variants === */
+  --color-action-danger: #ef4444;
+  --color-action-primary: #3b82f6;
+  --color-action-cancel: #f59e0b;
+
+  /* === Privacy States === */
+  --color-privacy-public: #10b981;
+  --color-privacy-private: #8b5cf6;
+
+  /* === Additional Status === */
+  --color-status-invalid: #ef4444;
+
+  /* === Overlay === */
   --color-void: #000000;
-  --color-concrete: #1a1a1a;
-  --color-fog: #2a2a2a;
-  --color-ash: #3a3a3a;
-  --color-dust: #4a4a4a;
-
-  --color-whisper: #e8e8e8;
-  --color-echo: #b8b8b8;
-  --color-shadow: #888888;
-
-  --color-decay: #7a6b5e;
-  --color-rust: #8a7060;
-  --color-corpse: #6b7a7a;
-  --color-static: #606060;
-  --color-blood: #6b3a3a;
-
-  --color-status-valid: #60b5ff;
-  --color-status-valid-light: #85c9ff;
-  --color-status-valid-dark: #3a9fe8;
-  --color-status-invalid: #ff6b6b;
-  --color-status-invalid-light: #ff9090;
-  --color-status-invalid-dark: #e84545;
-
-  --color-privacy-public: #6fda88;
-  --color-privacy-public-light: #90e8a8;
-  --color-privacy-public-dark: #52c46f;
-  --color-privacy-private: #b894ff;
-  --color-privacy-private-light: #d0b3ff;
-  --color-privacy-private-dark: #9d75f0;
-
-  --color-action-primary: #70c4e0;
-  --color-action-primary-light: #95d8ed;
-  --color-action-primary-dark: #4dafcc;
-  --color-action-danger: #ff6b6b;
-  --color-action-danger-light: #ff9090;
-  --color-action-danger-dark: #e84545;
-  --color-action-cancel: #d88888;
-  --color-action-cancel-light: #e8a8a8;
-  --color-action-cancel-dark: #c86868;
-
-  --color-info: #85d0e8;
-  --color-info-light: #a8e0f0;
-  --color-info-dark: #65bdd8;
-  --color-warning: #f0b870;
-  --color-warning-light: #ffd090;
-  --color-warning-dark: #d89850;
-  --color-success: #6fda88;
-  --color-success-light: #90e8a8;
-  --color-success-dark: #52c46f;
-}
-
-/* palette */
-:root {
-  /* Base tones - true void to institutional concrete */
-  --color-void: #000000;
-  --color-concrete: #1a1a1a;
-  --color-fog: #2a2a2a;
-  --color-ash: #3a3a3a;
-  --color-dust: #4a4a4a;
-
-  /* Text - brighter, piercing through darkness */
-  --color-whisper: #e8e8e8;
-  --color-echo: #b8b8b8;
-  --color-shadow: #888888;
-
-  /* Legacy functional accents - desaturated, unsettling */
-  --color-decay: #7a6b5e;
-  /* Desaturated brown-gray for danger/delete */
-  --color-rust: #8a7060;
-  /* Muted rust for warnings */
-  --color-corpse: #6b7a7a;
-  /* Sickly blue-gray for info */
-  --color-static: #606060;
-  /* Neutral gray for inactive states */
-  --color-blood: #6b3a3a;
-  /* Dark, dried blood red - not vibrant */
-
-  /* === Semantic color system === */
-
-  /* Status colors (validity indicators) - luminous, hope-bringing */
-  --color-status-valid: #60b5ff;
-  --color-status-valid-light: #85c9ff;
-  --color-status-valid-dark: #3a9fe8;
-  --color-status-invalid: #ff6b6b;
-  --color-status-invalid-light: #ff9090;
-  --color-status-invalid-dark: #e84545;
-
-  /* Privacy colors - vibrant, cutting through void */
-  --color-privacy-public: #6fda88;
-  --color-privacy-public-light: #90e8a8;
-  --color-privacy-public-dark: #52c46f;
-  --color-privacy-private: #b894ff;
-  --color-privacy-private-light: #d0b3ff;
-  --color-privacy-private-dark: #9d75f0;
-
-  /* Action colors - bright, decisive */
-  --color-action-primary: #70c4e0;
-  --color-action-primary-light: #95d8ed;
-  --color-action-primary-dark: #4dafcc;
-  --color-action-danger: #ff6b6b;
-  --color-action-danger-light: #ff9090;
-  --color-action-danger-dark: #e84545;
-  --color-action-cancel: #d88888;
-  --color-action-cancel-light: #e8a8a8;
-  --color-action-cancel-dark: #c86868;
-
-  /* Utility colors - luminous, guiding */
-  --color-info: #85d0e8;
-  --color-info-light: #a8e0f0;
-  --color-info-dark: #65bdd8;
-  --color-warning: #f0b870;
-  --color-warning-light: #ffd090;
-  --color-warning-dark: #d89850;
-  --color-success: #6fda88;
-  --color-success-light: #90e8a8;
-  --color-success-dark: #52c46f;
 }
 
 body {
-  background-color: var(--color-void);
-  color: var(--color-whisper);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-feature-settings:
     "tnum" 1,
     "zero" 1;
@@ -139,10 +106,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-fog);
+  background: var(--color-border-default);
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ash);
+  background: var(--color-border-strong);
 }

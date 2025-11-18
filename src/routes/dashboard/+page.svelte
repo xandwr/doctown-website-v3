@@ -367,21 +367,21 @@
 			<!-- Docpacks Section -->
 			<div class="flex flex-col min-h-0">
 				<div class="flex items-baseline gap-3 mb-6">
-					<h2 class="text-2xl font-bold tracking-tight text-whisper">docpacks</h2>
-					<span class="text-sm text-shadow font-mono"
+					<h2 class="text-2xl font-bold tracking-tight text-text-primary">docpacks</h2>
+					<span class="text-sm text-text-tertiary font-mono"
 						>// {docpacks.length}
 						{docpacks.length === 1 ? "pack" : "packs"}</span
 					>
 					<button
 						onclick={openRepoListModal}
-						class="ml-auto px-4 py-2 bg-corpse/20 text-corpse border border-corpse/40 rounded-sm hover:bg-corpse/30 hover:border-corpse/60 transition-all font-mono text-sm"
+						class="ml-auto px-4 py-2 bg-primary/10 text-primary border border-primary/30 rounded-sm hover:bg-primary/20 hover:border-primary/50 transition-all font-mono text-sm"
 					>
 						Create Docpack
 					</button>
 				</div>
 				{#if docpacks.length > 0}
 					<div
-						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent border border-fog rounded-sm bg-concrete/50"
+						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-bg-elevated scrollbar-track-transparent border border-border-default rounded-sm bg-bg-secondary/50"
 					>
 						<div class="space-y-3 p-4">
 						{#each docpacks as docpack (docpack.id)}
@@ -396,13 +396,10 @@
 					</div>
 				{:else}
 					<div
-						class="bg-concrete/50 border border-fog rounded-sm p-8 text-center flex-1 flex flex-col items-center justify-center"
+						class="bg-bg-secondary/50 border border-border-default rounded-sm p-8 text-center flex-1 flex flex-col items-center justify-center"
 					>
-						<p class="text-shadow font-mono text-sm mb-2">
-							nothing here yet
-						</p>
-						<p class="text-shadow/60 text-xs">
-							but when there is, it'll be legendary
+						<p class="text-text-tertiary font-mono text-sm mb-2">
+							[it's empty here...]
 						</p>
 					</div>
 				{/if}
@@ -424,22 +421,22 @@
 		}}
 		style="background-color: rgba(10, 10, 10, 0.7);"
 	>
-		<div class="bg-concrete border border-ash rounded-md w-full max-w-3xl max-h-[80vh] flex flex-col">
+		<div class="bg-bg-secondary border border-border-strong rounded-md w-full max-w-3xl max-h-[80vh] flex flex-col">
 			<!-- Header -->
-			<div class="border-b border-fog p-6">
+			<div class="border-b border-border-default p-6">
 				<div class="flex items-center justify-between gap-4">
 					<div class="flex items-baseline gap-3">
-						<h3 class="text-xl font-bold text-whisper">Select Repository</h3>
+						<h3 class="text-xl font-bold text-text-primary">Select Repository</h3>
 						{#await data.repos then repos}
 							{@const filtered = hideUnsupportedRepos ? repos.filter(r => hasASTSupport(r.language)) : repos}
-							<span class="text-sm text-shadow font-mono">
+							<span class="text-sm text-text-tertiary font-mono">
 								// {filtered.length} {filtered.length === 1 ? 'repo' : 'repos'}
 							</span>
 						{/await}
 					</div>
 					<button
 						onclick={() => hideUnsupportedRepos = !hideUnsupportedRepos}
-						class="flex items-center gap-2 px-3 py-1.5 rounded-sm border font-mono text-xs transition-all {hideUnsupportedRepos ? 'bg-corpse/20 text-corpse border-corpse/40' : 'bg-concrete border-fog text-shadow hover:border-ash hover:text-whisper'}"
+						class="flex items-center gap-2 px-3 py-1.5 rounded-sm border font-mono text-xs transition-all {hideUnsupportedRepos ? 'bg-success/10 text-success border-success/30' : 'bg-bg-secondary border-border-default text-text-tertiary hover:border-border-strong hover:text-text-primary'}"
 						title={hideUnsupportedRepos ? 'Show all repos' : 'Hide repos without AST support'}
 					>
 						<span>{hideUnsupportedRepos ? '✓' : '○'}</span>
@@ -449,12 +446,12 @@
 			</div>
 
 			<!-- Repo List -->
-			<div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent">
+			<div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-bg-elevated scrollbar-track-transparent">
 				{#await data.repos}
 					<div class="p-12 flex items-center justify-center">
 						<div class="text-center">
-							<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-corpse mb-4"></div>
-							<p class="text-echo font-mono text-sm">loading repositories...</p>
+							<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+							<p class="text-text-secondary font-mono text-sm">loading repositories...</p>
 						</div>
 					</div>
 				{:then repos}
@@ -469,59 +466,59 @@
 									availableRepos = repos;
 									createDocpack(repo);
 								}}
-								class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all border rounded-sm {repo.language ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-fog hover:border-ash'} {!isSupported && repo.language ? 'opacity-60' : ''}"
+								class="w-full text-left bg-bg-secondary/30 p-4 hover:bg-hover-bg transition-all border rounded-sm {repo.language ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-border-default hover:border-border-strong'} {!isSupported && repo.language ? 'opacity-60' : ''}"
 								>
 									<div class="flex items-center gap-2 mb-2">
-										<h4 class="text-base font-bold truncate flex-1 font-mono {isSupported ? 'text-whisper' : 'text-shadow'}">
+										<h4 class="text-base font-bold truncate flex-1 font-mono {isSupported ? 'text-text-primary' : 'text-text-tertiary'}">
 											{repo.name}
 										</h4>
 									{#if isSupported && repo.language}
-										<span class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 rounded-sm font-mono shrink-0" title="Full AST support available">
+										<span class="px-2 py-0.5 text-xs bg-success/10 text-success border border-success/30 rounded-sm font-mono shrink-0" title="Full AST support available">
 											✓ AST
 										</span>
 									{/if}
-									{#if repo.private}
-										<span class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 rounded-sm font-mono shrink-0">
-											Private
-										</span>
+								{#if repo.private}
+									<span class="px-2 py-0.5 text-xs bg-static/20 text-text-tertiary border border-static/50 rounded-sm font-mono shrink-0">
+										Private
+									</span>
 									{:else}
-										<span class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 rounded-sm font-mono shrink-0">
+										<span class="px-2 py-0.5 text-xs bg-primary/10 text-primary border border-primary/30 rounded-sm font-mono shrink-0">
 												Public
 											</span>
 										{/if}
 									</div>
 									{#if repo.description}
-										<p class="text-xs mb-3 line-clamp-2 font-light {isSupported ? 'text-echo' : 'text-shadow/70'}">
+										<p class="text-xs mb-3 line-clamp-2 font-light {isSupported ? 'text-text-secondary' : 'text-text-tertiary/70'}">
 											{repo.description}
 										</p>
 									{/if}
-									<div class="flex items-center gap-3 text-xs font-mono {isSupported ? 'text-shadow' : 'text-shadow/50'}">
-										{#if repo.language}
-											<span class="flex items-center gap-1.5 {theme.textColor}">
-												<span class="w-2 h-2 {theme.dotColor} {!isSupported ? 'opacity-50' : ''}"></span>
-												{repo.language}
-											</span>
-										{/if}
-										{#if repo.stargazers_count > 0}
-											<span class="flex items-center gap-1">
-												<span class="text-rust">★</span>
-												{repo.stargazers_count}
-											</span>
-										{/if}
-									</div>
+								<div class="flex items-center gap-3 text-xs font-mono {isSupported ? 'text-text-tertiary' : 'text-text-tertiary/50'}">
+									{#if repo.language}
+										<span class="flex items-center gap-1.5 {theme.textColor}">
+											<span class="w-2 h-2 {theme.dotColor} {!isSupported ? 'opacity-50' : ''}"></span>
+											{repo.language}
+										</span>
+									{/if}
+									{#if repo.stargazers_count > 0}
+										<span class="flex items-center gap-1">
+											<span class="text-warning">★</span>
+											{repo.stargazers_count}
+										</span>
+									{/if}
+								</div>
 								</button>
 							{/each}
 						</div>
 					{:else}
 						<div class="p-12 flex items-center justify-center">
 							<div class="text-center">
-								<p class="text-decay font-mono text-sm mb-2">
+								<p class="text-danger font-mono text-sm mb-2">
 									{hideUnsupportedRepos ? 'No repos with AST support found' : 'No repositories found'}
 								</p>
 								{#if hideUnsupportedRepos}
 									<button
 										onclick={() => hideUnsupportedRepos = false}
-										class="text-xs text-corpse hover:underline font-mono"
+										class="text-xs text-primary hover:underline font-mono"
 									>
 										Show all repos
 									</button>
@@ -531,16 +528,16 @@
 					{/if}
 				{:catch}
 					<div class="p-12 flex items-center justify-center">
-						<p class="text-decay font-mono text-sm">Failed to load repositories</p>
+						<p class="text-danger font-mono text-sm">Failed to load repositories</p>
 					</div>
 				{/await}
 			</div>
 
 			<!-- Footer -->
-			<div class="border-t border-fog p-4">
+			<div class="border-t border-border-default p-4">
 				<button
 					onclick={closeRepoListModal}
-					class="px-4 py-2 bg-fog/50 text-echo border border-ash rounded-sm hover:bg-ash hover:text-whisper transition-all font-mono text-sm"
+					class="px-4 py-2 bg-bg-elevated/50 text-text-secondary border border-border-strong rounded-sm hover:bg-border-strong hover:text-text-primary transition-all font-mono text-sm"
 				>
 					Cancel
 				</button>

@@ -22,35 +22,34 @@ export interface Docpack {
   file_url: string | null;
 }
 
-// Status badge configuration - liminal palette
-// Colors map to: orange->rust, green/cyan->corpse, red->decay
+// Status badge configuration - semantic color system
 export const STATUS_CONFIG: Record<
   DocpackStatus,
-  { color: string; label: string; description: string }
+  { status: DocpackStatus; label: string; description: string }
 > = {
   pending: {
-    color: "orange", // Maps to rust in components
+    status: "pending",
     label: "Pending",
     description:
       "Docpack is awaiting generation. Click to configure and make public.",
   },
   valid: {
-    color: "green", // Maps to corpse in components
+    status: "valid",
     label: "Valid",
     description: "Docpack has been generated and validated. Ready to publish.",
   },
   public: {
-    color: "cyan", // Maps to corpse in components
+    status: "public",
     label: "Public",
     description: "Docpack is live and accessible globally in the commons.",
   },
   failed: {
-    color: "red", // Maps to decay in components
+    status: "failed",
     label: "Failed",
     description: "Docpack generation failed. Check logs for details.",
   },
   building: {
-    color: "orange", // Maps to rust in components
+    status: "building",
     label: "Building",
     description: "Docpack generation in progress. Check back soon!",
   },

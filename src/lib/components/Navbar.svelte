@@ -47,32 +47,32 @@
 <svelte:window onclick={closeDropdown} />
 
 <div
-    class="py-2 px-4 md:px-8 flex items-center justify-between border-b border-fog relative"
+    class="py-2 px-4 md:px-8 flex items-center justify-between border-b border-border-default relative"
 >
     <!-- Left side: Logo and Desktop Navigation -->
     <div class="flex items-center gap-x-8">
         <a
             href="/"
-            class="text-3xl md:text-4xl font-light text-whisper hover:text-white z-10"
+            class="text-3xl md:text-4xl font-light text-text-primary hover:text-white z-10"
             >doctown</a
         >
 
         <!-- Desktop Navigation - Hidden on mobile -->
         <div class="hidden md:flex items-center gap-x-8">
-            <div class="border-r border-fog h-8"></div>
-            <nav class="flex items-center gap-x-6 text-lg text-echo">
+            <div class="border-r border-border-default h-8"></div>
+            <nav class="flex items-center gap-x-6 text-lg text-text-secondary">
                 <a
                     href="/commons"
-                    class="hover:text-whisper transition-colors"
-                    class:text-corpse={$page.url.pathname === "/commons"}
+                    class="hover:text-text-primary transition-colors"
+                    class:text-primary={$page.url.pathname === "/commons"}
                 >
                     Commons
                 </a>
                 {#if user}
                     <a
                         href="/dashboard"
-                        class="hover:text-whisper transition-colors"
-                        class:text-corpse={$page.url.pathname ===
+                        class="hover:text-text-primary transition-colors"
+                        class:text-primary={$page.url.pathname ===
                             "/dashboard"}
                     >
                         Dashboard
@@ -100,19 +100,19 @@
 
                 {#if showDropdown}
                     <div
-                        class="absolute right-0 mt-2 w-48 bg-fog border border-ash rounded-sm overflow-hidden z-50"
+                        class="absolute right-0 mt-2 w-48 bg-bg-elevated border border-border-strong rounded-sm overflow-hidden z-50"
                     >
                         <a
                             href={user.html_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="block px-4 py-2 hover:bg-ash transition-colors text-whisper"
+                            class="block px-4 py-2 hover:bg-border-strong transition-colors text-text-primary"
                         >
                             GitHub Profile
                         </a>
                         <button
                             onclick={handleLogout}
-                            class="w-full text-left px-4 py-2 hover:bg-decay/30 transition-colors text-decay"
+                            class="w-full text-left px-4 py-2 hover:bg-danger/30 transition-colors text-danger"
                         >
                             Logout
                         </button>
@@ -122,7 +122,7 @@
         {:else}
             <a
                 href="/auth/login"
-                class="bg-fog border border-ash rounded-sm p-2 text-whisper hover:bg-ash transition-colors"
+                class="bg-bg-elevated border border-border-strong rounded-sm p-2 text-text-primary hover:bg-border-strong transition-colors"
             >
                 Login with GitHub
             </a>
@@ -134,7 +134,7 @@
         <button
             bind:this={mobileMenuButtonRef}
             onclick={toggleMobileMenu}
-            class="p-2 hover:bg-fog transition-colors text-whisper"
+            class="p-2 hover:bg-bg-elevated transition-colors text-text-primary"
             aria-label="Toggle menu"
         >
             <svg
@@ -165,13 +165,13 @@
         {#if showMobileMenu}
             <div
                 bind:this={mobileMenuDropdownRef}
-                class="absolute right-0 mt-2 w-64 bg-fog border border-ash rounded-sm overflow-hidden z-50"
+                class="absolute right-0 mt-2 w-64 bg-bg-elevated border border-border-strong rounded-sm overflow-hidden z-50"
             >
-                <nav class="flex flex-col text-whisper">
+                <nav class="flex flex-col text-text-primary">
                     <a
                         href="/commons"
-                        class="px-4 py-3 hover:bg-ash transition-colors border-b border-ash"
-                        class:text-corpse={$page.url.pathname === "/commons"}
+                        class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
+                        class:text-primary={$page.url.pathname === "/commons"}
                         onclick={() => (showMobileMenu = false)}
                     >
                         Commons
@@ -179,8 +179,8 @@
                     {#if user}
                         <a
                             href="/dashboard"
-                            class="px-4 py-3 hover:bg-ash transition-colors border-b border-ash"
-                            class:text-corpse={$page.url.pathname ===
+                            class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
+                            class:text-primary={$page.url.pathname ===
                                 "/dashboard"}
                             onclick={() => (showMobileMenu = false)}
                         >
@@ -190,7 +190,7 @@
                             href={user.html_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="px-4 py-3 hover:bg-ash transition-colors border-b border-ash flex items-center gap-2"
+                            class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong flex items-center gap-2"
                         >
                             <img
                                 src={user.avatar_url}
@@ -201,14 +201,14 @@
                         </a>
                         <button
                             onclick={handleLogout}
-                            class="w-full text-left px-4 py-3 hover:bg-decay/30 transition-colors text-decay"
+                            class="w-full text-left px-4 py-3 hover:bg-danger/30 transition-colors text-danger"
                         >
                             Logout
                         </button>
                     {:else}
                         <a
                             href="/auth/login"
-                            class="mx-4 my-3 bg-ash border border-dust rounded-sm p-2 text-whisper hover:bg-dust transition-colors text-center"
+                            class="mx-4 my-3 bg-border-strong border border-border-default rounded-sm p-2 text-text-primary hover:bg-border-default transition-colors text-center"
                             onclick={() => (showMobileMenu = false)}
                         >
                             Login with GitHub

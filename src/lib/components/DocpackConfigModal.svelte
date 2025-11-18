@@ -80,12 +80,12 @@
         docpack ? STATUS_CONFIG[docpack.status] : null,
     );
 
-    // Color classes for status display - liminal palette
+    // Color classes for status display - new color system
     const statusColorClasses: Record<string, string> = {
-        orange: "text-rust border-rust/40",
-        green: "text-corpse border-corpse/40",
-        cyan: "text-corpse border-corpse/40",
-        red: "text-decay border-decay/40",
+        orange: "text-warning border-warning/40",
+        green: "text-success border-success/40",
+        cyan: "text-primary border-primary/40",
+        red: "text-danger border-danger/40",
     };
 </script>
 
@@ -97,22 +97,22 @@
         onclick={handleBackdropClick}
     >
         <div
-            class="bg-fog border border-ash rounded-md max-w-xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
+            class="bg-bg-elevated border border-border-strong rounded-md max-w-xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
         >
             <!-- Header -->
-            <div class="border-b border-ash px-5 py-4">
+            <div class="border-b border-border-strong px-5 py-4">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1 min-w-0">
-                        <h2 class="text-xl font-normal text-whisper mb-0.5 truncate">
+                        <h2 class="text-xl font-normal text-text-primary mb-0.5 truncate">
                             {docpack.name}
                         </h2>
-                        <p class="text-shadow text-xs font-mono truncate">
+                        <p class="text-text-tertiary text-xs font-mono truncate">
                             {docpack.full_name.replace('/', ':')}
                         </p>
                     </div>
                     <button
                         onclick={(e) => { e.stopPropagation(); onClose(); }}
-                        class="text-shadow hover:text-whisper transition-colors shrink"
+                        class="text-text-tertiary hover:text-text-primary transition-colors shrink"
                         aria-label="Close"
                     >
                         <svg
@@ -165,52 +165,77 @@
                             {docpack.status === "public" ? "public" : "private"}
                         </div>
                     {/if}
+
+                    <!-- Delete Button (only shown when onDelete is provided, i.e., owner's view) -->
+                    {#if onDelete}
+                        <button
+                            onclick={handleDeleteClick}
+                            class="ml-auto p-2 bg-action-danger border border-action-danger rounded-sm hover:bg-action-danger/80 transition-colors"
+                            aria-label="Delete docpack"
+                            title="Delete docpack"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                            </svg>
+                        </button>
+                    {/if}
                 </div>
 
                 <!-- Description (if exists) -->
                 {#if docpack.description}
-                    <div class="border-t border-ash pt-4">
-                        <p class="text-sm text-echo leading-relaxed">
+                    <div class="border-t border-border-strong pt-4">
+                        <p class="text-sm text-text-secondary leading-relaxed">
                             {docpack.description}
                         </p>
                     </div>
                 {/if}
 
                 <!-- Technical Details (compact) -->
-                <div class="border-t border-ash pt-4 space-y-2 font-mono text-xs">
+                <div class="border-t border-border-strong pt-4 space-y-2 font-mono text-xs">
                     <div class="flex justify-between gap-4">
-                        <span class="text-shadow">repo</span>
+                        <span class="text-text-tertiary">repo</span>
                         <a
                             href={docpack.repo_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="text-corpse hover:underline truncate"
+                            class="text-primary hover:underline truncate"
                         >
                             {docpack.full_name.replace('/', ':')}
                         </a>
                     </div>
                     {#if docpack.version}
                         <div class="flex justify-between gap-4">
-                            <span class="text-shadow">version</span>
-                            <span class="text-whisper">v{docpack.version}</span>
+                            <span class="text-text-tertiary">version</span>
+                            <span class="text-text-primary">v{docpack.version}</span>
                         </div>
                     {/if}
                     {#if docpack.commit_hash}
                         <div class="flex justify-between gap-4">
-                            <span class="text-shadow">commit</span>
-                            <span class="text-whisper">{docpack.commit_hash.substring(0, 8)}</span>
+                            <span class="text-text-tertiary">commit</span>
+                            <span class="text-text-primary">{docpack.commit_hash.substring(0, 8)}</span>
                         </div>
                     {/if}
                     {#if docpack.language}
                         <div class="flex justify-between gap-4">
-                            <span class="text-shadow">language</span>
-                            <span class="text-whisper">{docpack.language}</span>
+                            <span class="text-text-tertiary">language</span>
+                            <span class="text-text-primary">{docpack.language}</span>
                         </div>
                     {/if}
                 </div>
 
                 <!-- Actions -->
-                <div class="border-t border-ash pt-4 space-y-3">
+                <div class="border-t border-border-strong pt-4 space-y-3">
                     <!-- Download (if available) -->
                     {#if docpack.file_url && (docpack.status === "valid" || docpack.status === "public")}
                         <a
@@ -222,7 +247,7 @@
                         </a>
                         <a
                             href="/docpacks/{docpack.id}"
-                            class="block w-full bg-corpse/10 text-corpse border border-corpse/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-corpse/20 transition-colors text-center"
+                            class="block w-full bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-success/20 transition-colors text-center"
                         >
                             View Docs
                         </a>
@@ -230,7 +255,7 @@
 
                     <!-- Pending State -->
                     {#if docpack.status === "pending"}
-                        <div class="text-xs text-shadow">
+                        <div class="text-xs text-text-tertiary">
                             Generation in progress...
                         </div>
                         {#if onCancel}
@@ -251,21 +276,6 @@
                     {/if}
                 </div>
             </div>
-
-            <!-- Footer - Danger Zone (only shown when onDelete is provided, i.e., owner's view) -->
-            {#if onDelete}
-                <p class="pl-5 mb-1 opacity-20 text-action-danger"># - the danger zone - #</p>
-                <div class="border-t border-ash px-5 py-3 flex gap-2 bg-action-danger/10">
-                    {#if !showDeleteConfirm}
-                        <button
-                            onclick={handleDeleteClick}
-                            class="bg-action-danger/20 hover:bg-action-danger/30 text-action-danger border-2 border-action-danger/40 px-4 py-1.5 text-xs transition-colors"
-                        >
-                            Delete
-                        </button>
-                    {/if}
-                </div>
-            {/if}
         </div>
     </div>
 {/if}
@@ -278,27 +288,27 @@
         class="fixed inset-0 bg-void/90 backdrop-blur-sm z-60 flex items-center justify-center"
         onclick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
     >
-        <div class="bg-fog border border-action-danger rounded-md max-w-sm w-full mx-4 overflow-hidden">
+        <div class="bg-bg-elevated border border-action-danger rounded-md max-w-sm w-full mx-4 overflow-hidden">
             <!-- Header -->
-            <div class="border-b border-ash px-5 py-4">
+            <div class="border-b border-border-strong px-5 py-4">
                 <h3 class="text-lg font-normal text-action-danger">Delete Docpack?</h3>
             </div>
 
             <!-- Content -->
             <div class="px-5 py-4">
-                <p class="text-sm text-echo mb-2">
-                    Delete <span class="text-whisper font-mono">{docpack.name}</span>?
+                <p class="text-sm text-text-secondary mb-2">
+                    Delete <span class="text-text-primary font-mono">{docpack.name}</span>?
                 </p>
-                <p class="text-xs text-shadow">
+                <p class="text-xs text-text-tertiary">
                     This cannot be undone.
                 </p>
             </div>
 
             <!-- Footer -->
-            <div class="border-t border-ash px-5 py-3 flex gap-2">
+            <div class="border-t border-border-strong px-5 py-3 flex gap-2">
                 <button
                     onclick={handleDeleteCancel}
-                    class="flex-1 bg-ash/50 hover:bg-ash text-whisper rounded-sm px-4 py-1.5 text-xs transition-colors"
+                    class="flex-1 bg-border-strong/50 hover:bg-border-strong text-text-primary rounded-sm px-4 py-1.5 text-xs transition-colors"
                 >
                     Cancel
                 </button>

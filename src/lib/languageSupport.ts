@@ -65,112 +65,112 @@ export interface LanguageTheme {
 }
 
 const LANGUAGE_THEMES: Record<string, LanguageTheme> = {
-  // Rust - warm rust/orange tones
+  // Rust - classic rust orange
   Rust: {
-    borderColor: "border-rust/40",
-    textColor: "text-rust",
-    dotColor: "bg-rust",
-    hoverBorderColor: "hover:border-rust/60",
+    borderColor: "border-lang-rust/30",
+    textColor: "text-lang-rust",
+    dotColor: "bg-lang-rust",
+    hoverBorderColor: "hover:border-lang-rust/50",
   },
-  // Python - blue tones
+  // Python - bright blue
   Python: {
-    borderColor: "border-action-primary/40",
-    textColor: "text-action-primary",
-    dotColor: "bg-action-primary",
-    hoverBorderColor: "hover:border-action-primary/60",
+    borderColor: "border-lang-python/30",
+    textColor: "text-lang-python",
+    dotColor: "bg-lang-python",
+    hoverBorderColor: "hover:border-lang-python/50",
   },
-  // JavaScript - warning/yellow tones
+  // JavaScript - bright yellow
   JavaScript: {
-    borderColor: "border-warning/40",
-    textColor: "text-warning",
-    dotColor: "bg-warning",
-    hoverBorderColor: "hover:border-warning/60",
+    borderColor: "border-lang-javascript/30",
+    textColor: "text-lang-javascript",
+    dotColor: "bg-lang-javascript",
+    hoverBorderColor: "hover:border-lang-javascript/50",
   },
-  // TypeScript - bright blue tones
+  // TypeScript - blue
   TypeScript: {
-    borderColor: "border-action-primary/40",
-    textColor: "text-action-primary-light",
-    dotColor: "bg-action-primary-light",
-    hoverBorderColor: "hover:border-action-primary/60",
+    borderColor: "border-lang-typescript/30",
+    textColor: "text-lang-typescript",
+    dotColor: "bg-lang-typescript",
+    hoverBorderColor: "hover:border-lang-typescript/50",
   },
-  // Go - cyan/teal tones
+  // Go - cyan
   Go: {
-    borderColor: "border-info/40",
-    textColor: "text-info",
-    dotColor: "bg-info",
-    hoverBorderColor: "hover:border-info/60",
+    borderColor: "border-lang-go/30",
+    textColor: "text-lang-go",
+    dotColor: "bg-lang-go",
+    hoverBorderColor: "hover:border-lang-go/50",
   },
-  // Java - orange/rust tones
+  // Java - orange
   Java: {
-    borderColor: "border-rust/40",
-    textColor: "text-rust",
-    dotColor: "bg-rust",
-    hoverBorderColor: "hover:border-rust/60",
+    borderColor: "border-lang-java/30",
+    textColor: "text-lang-java",
+    dotColor: "bg-lang-java",
+    hoverBorderColor: "hover:border-lang-java/50",
   },
-  // C - gray/static tones
+  // C - blue-gray
   C: {
-    borderColor: "border-static/40",
-    textColor: "text-shadow",
-    dotColor: "bg-static",
-    hoverBorderColor: "hover:border-static/60",
+    borderColor: "border-lang-cpp/30",
+    textColor: "text-lang-cpp",
+    dotColor: "bg-lang-cpp",
+    hoverBorderColor: "hover:border-lang-cpp/50",
   },
-  // C++ - gray tones, slightly lighter
+  // C++ - blue
   "C++": {
-    borderColor: "border-dust/40",
-    textColor: "text-echo",
-    dotColor: "bg-dust",
-    hoverBorderColor: "hover:border-dust/60",
+    borderColor: "border-lang-cpp/30",
+    textColor: "text-lang-cpp",
+    dotColor: "bg-lang-cpp",
+    hoverBorderColor: "hover:border-lang-cpp/50",
   },
-  // Ruby - red/blood tones
+  // Ruby - red
   Ruby: {
-    borderColor: "border-action-danger/40",
-    textColor: "text-action-danger",
-    dotColor: "bg-action-danger",
-    hoverBorderColor: "hover:border-action-danger/60",
+    borderColor: "border-lang-ruby/30",
+    textColor: "text-lang-ruby",
+    dotColor: "bg-lang-ruby",
+    hoverBorderColor: "hover:border-lang-ruby/50",
   },
-  // C# - purple/private tones
+  // C# - green
   "C#": {
-    borderColor: "border-privacy-private/40",
-    textColor: "text-privacy-private",
-    dotColor: "bg-privacy-private",
-    hoverBorderColor: "hover:border-privacy-private/60",
+    borderColor: "border-lang-csharp/30",
+    textColor: "text-lang-csharp",
+    dotColor: "bg-lang-csharp",
+    hoverBorderColor: "hover:border-lang-csharp/50",
   },
-  // PHP - purple tones
+  // PHP - purple
   PHP: {
-    borderColor: "border-privacy-private/40",
-    textColor: "text-privacy-private-light",
-    dotColor: "bg-privacy-private-light",
-    hoverBorderColor: "hover:border-privacy-private/60",
+    borderColor: "border-lang-php/30",
+    textColor: "text-lang-php",
+    dotColor: "bg-lang-php",
+    hoverBorderColor: "hover:border-lang-php/50",
   },
-  // Swift - orange tones
+  // Swift - orange
   Swift: {
-    borderColor: "border-rust/40",
-    textColor: "text-rust",
-    dotColor: "bg-rust",
-    hoverBorderColor: "hover:border-rust/60",
+    borderColor: "border-lang-swift/30",
+    textColor: "text-lang-swift",
+    dotColor: "bg-lang-swift",
+    hoverBorderColor: "hover:border-lang-swift/50",
   },
-  // Scala - red tones
+  // Scala - red
   Scala: {
-    borderColor: "border-action-danger/40",
-    textColor: "text-action-danger-light",
-    dotColor: "bg-action-danger-light",
-    hoverBorderColor: "hover:border-action-danger/60",
+    borderColor: "border-lang-scala/30",
+    textColor: "text-lang-scala",
+    dotColor: "bg-lang-scala",
+    hoverBorderColor: "hover:border-lang-scala/50",
   },
-  // Shell/Bash - green tones
+  // Shell/Bash - green
   Shell: {
-    borderColor: "border-success/40",
-    textColor: "text-success",
-    dotColor: "bg-success",
-    hoverBorderColor: "hover:border-success/60",
+    borderColor: "border-lang-shell/30",
+    textColor: "text-lang-shell",
+    dotColor: "bg-lang-shell",
+    hoverBorderColor: "hover:border-lang-shell/50",
   },
 };
 
 // Default theme for unsupported or unknown languages
 const DEFAULT_THEME: LanguageTheme = {
-  borderColor: "border-fog",
-  textColor: "text-shadow",
-  dotColor: "bg-corpse",
-  hoverBorderColor: "hover:border-ash",
+  borderColor: "border-border-default",
+  textColor: "text-text-tertiary",
+  dotColor: "bg-text-muted",
+  hoverBorderColor: "hover:border-border-strong",
 };
 
 /**
