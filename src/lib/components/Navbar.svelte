@@ -100,7 +100,7 @@
 
                 {#if showDropdown}
                     <div
-                        class="absolute right-0 mt-2 w-48 bg-fog border border-ash overflow-hidden z-50"
+                        class="absolute right-0 mt-2 w-48 bg-fog border border-ash rounded-sm overflow-hidden z-50"
                     >
                         <a
                             href={user.html_url}
@@ -122,7 +122,7 @@
         {:else}
             <a
                 href="/auth/login"
-                class="bg-fog border border-ash p-2 text-whisper hover:bg-ash transition-colors"
+                class="bg-fog border border-ash rounded-sm p-2 text-whisper hover:bg-ash transition-colors"
             >
                 Login with GitHub
             </a>
@@ -165,7 +165,7 @@
         {#if showMobileMenu}
             <div
                 bind:this={mobileMenuDropdownRef}
-                class="absolute right-0 mt-2 w-64 bg-fog border border-ash overflow-hidden z-50"
+                class="absolute right-0 mt-2 w-64 bg-fog border border-ash rounded-sm overflow-hidden z-50"
             >
                 <nav class="flex flex-col text-whisper">
                     <a
@@ -208,7 +208,7 @@
                     {:else}
                         <a
                             href="/auth/login"
-                            class="mx-4 my-3 bg-ash border border-dust p-2 text-whisper hover:bg-dust transition-colors text-center"
+                            class="mx-4 my-3 bg-ash border border-dust rounded-sm p-2 text-whisper hover:bg-dust transition-colors text-center"
                             onclick={() => (showMobileMenu = false)}
                         >
                             Login with GitHub

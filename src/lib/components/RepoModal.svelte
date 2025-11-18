@@ -60,7 +60,7 @@
         style="top: {position.top}px; left: {position.left}px; width: {position.width}px;"
     >
         <div
-            class="bg-concrete border border-corpse/70 p-2"
+            class="bg-concrete border border-corpse/70 rounded-sm p-2"
         >
             <div class="flex items-start justify-between mb-2">
                 <h3
@@ -70,7 +70,7 @@
                 </h3>
                 {#if repo.private}
                     <span
-                        class="ml-2 px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 font-mono"
+                        class="ml-2 px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 rounded-sm font-mono"
                     >
                         private
                     </span>
@@ -109,7 +109,7 @@
 
     <!-- Dropdown menu -->
     <div
-        class="absolute z-60 bg-fog/90 border border-ash animate-in slide-in-from-top-2 duration-200"
+        class="absolute z-60 bg-fog/90 border border-ash rounded-sm animate-in slide-in-from-top-2 duration-200"
         style="top: {position.top -
             8}px; left: {position.left}px; width: {position.width}px; transform: translateY(-100%);"
     >

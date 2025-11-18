@@ -25,7 +25,7 @@
 		<div class="max-w-[700px] mx-auto px-6 md:px-16 text-center">
 			<p class="text-sm text-shadow mb-3">Know what you're doing?</p>
 			<div
-				class="rounded border border-ash px-4 py-3 md:px-6 md:py-4 text-sm md:text-base leading-relaxed overflow-x-auto text-left inline-block"
+				class="rounded-sm border border-ash px-4 py-3 md:px-6 md:py-4 text-sm md:text-base leading-relaxed overflow-x-auto text-left inline-block"
 			>
 				<code class="text-whisper whitespace-nowrap">
 					$ cargo install localdoc
@@ -61,7 +61,7 @@
 						href="https://www.gitbook.com/pricing"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-decay hover:text-rust transition-colors"
+						class="text-purple-800/80 hover:text-rust transition-colors"
 						>GitBook</a
 					>
 					upselling you on "team seats." You don't need
@@ -69,7 +69,7 @@
 						href="https://www.mintlify.com/pricing"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-blood hover:text-rust transition-colors"
+						class="text-green-300 hover:text-rust transition-colors"
 						>Mintlify</a
 					>
 					charging you $250/month to host your docs. You don't need
@@ -77,7 +77,7 @@
 						href="https://www.atlassian.com/software/confluence"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-blood hover:text-rust transition-colors"
+						class="text-blue-500 hover:text-rust transition-colors"
 						>Confluence</a
 					>
 					making you click through three dropdowns to copy a code snippet.
@@ -187,11 +187,6 @@
 						>
 							Verified badge (GitHub-linked)
 						</li>
-						<li
-							class="text-base text-echo leading-relaxed pl-5 relative before:content-['→'] before:absolute before:left-0 before:text-corpse"
-						>
-							Priority support
-						</li>
 					</ul>
 					<p class="text-corpse text-sm leading-normal">
 						5-10 hours saved per project.<br />
@@ -229,7 +224,7 @@
 				Stop the bleeding.
 			</h2>
 			<div
-				class="rounded border border-ash px-4 py-4 md:px-8 md:py-8 text-sm md:text-base leading-relaxed mb-6 overflow-x-auto max-w-[500px] mx-auto text-left"
+				class="rounded-sm border border-ash px-4 py-4 md:px-8 md:py-8 text-sm md:text-base leading-relaxed mb-6 overflow-x-auto max-w-[500px] mx-auto text-left"
 			>
 				<div class="text-whisper whitespace-nowrap">
 					$ cargo install localdoc

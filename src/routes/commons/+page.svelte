@@ -128,14 +128,14 @@
         </div>
 
         {#if isLoading}
-            <div class="bg-black/30 border border-info/20 rounded-lg p-12 text-center">
+            <div class="bg-black/30 border border-info/20 rounded-md p-12 text-center">
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-info mb-4"></div>
                 <p class="text-info/80 font-mono text-sm">
                     loading public docpacks...
                 </p>
             </div>
         {:else if error}
-            <div class="bg-black/30 border border-status-invalid/20 rounded-lg p-12 text-center">
+            <div class="bg-black/30 border border-status-invalid/20 rounded-md p-12 text-center">
                 <div class="text-6xl mb-4">⚠️</div>
                 <p class="text-status-invalid/80 font-mono text-sm mb-2">
                     {error}
@@ -157,7 +157,7 @@
             </div>
         {:else}
             <div
-                class="bg-black/30 border border-cyan-500/20 rounded-lg p-12 text-center"
+                class="bg-black/30 border border-cyan-500/20 rounded-md p-12 text-center"
             >
                 <div class="text-6xl mb-4">📚</div>
                 <p class="text-cyan-400/80 font-mono text-sm mb-2">

@@ -134,10 +134,10 @@
 			</div>
 			<div class="flex items-center gap-2">
 				{#if onCancel}
-					<button
-						onclick={onCancel}
-						class="px-3 py-1.5 text-sm font-mono bg-action-cancel/10 text-action-cancel hover:bg-action-cancel/20 border border-action-cancel/30 rounded transition-colors"
-						aria-label="Cancel job"
+				<button
+					onclick={onCancel}
+					class="px-3 py-1.5 text-sm font-mono bg-action-cancel/10 text-action-cancel hover:bg-action-cancel/20 border border-action-cancel/30 rounded-sm transition-colors"
+					aria-label="Cancel job"
 					>
 						Cancel Job
 					</button>
@@ -174,7 +174,7 @@
 				</div>
 			{:else}
 				{#each logs as log (log.id)}
-					<div class="flex gap-3 mb-1 hover:bg-white/5 px-2 py-1 rounded transition-colors">
+					<div class="flex gap-3 mb-1 hover:bg-white/5 px-2 py-1 rounded-sm transition-colors">
 						<span class="text-white/40 select-none shrink-0">{formatTimestamp(log.timestamp)}</span>
 						<span class={`${getLevelColor(log.level)} font-bold uppercase select-none w-16 shrink-0`}>
 							{log.level}
@@ -192,7 +192,7 @@
 			</div>
 			<button
 				onclick={() => { autoScroll = true; scrollToBottom(); }}
-				class={`font-mono px-2 py-1 rounded transition-colors ${
+				class={`font-mono px-2 py-1 rounded-sm transition-colors ${
 					autoScroll
 						? 'text-emerald-400 bg-emerald-400/10'
 						: 'text-white/40 hover:text-white/70'

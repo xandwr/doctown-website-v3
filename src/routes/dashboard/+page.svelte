@@ -372,14 +372,14 @@
 					>
 					<button
 						onclick={openRepoListModal}
-						class="ml-auto px-4 py-2 bg-corpse/20 text-corpse border border-corpse/40 hover:bg-corpse/30 hover:border-corpse/60 transition-all font-mono text-sm"
+						class="ml-auto px-4 py-2 bg-corpse/20 text-corpse border border-corpse/40 rounded-sm hover:bg-corpse/30 hover:border-corpse/60 transition-all font-mono text-sm"
 					>
 						Create Docpack
 					</button>
 				</div>
 				{#if docpacks.length > 0}
 					<div
-						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent border border-fog bg-concrete/50"
+						class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-fog scrollbar-track-transparent border border-fog rounded-sm bg-concrete/50"
 					>
 						<div class="space-y-3 p-4">
 						{#each docpacks as docpack (docpack.id)}
@@ -394,7 +394,7 @@
 					</div>
 				{:else}
 					<div
-						class="bg-concrete/50 border border-fog p-8 text-center flex-1 flex flex-col items-center justify-center"
+						class="bg-concrete/50 border border-fog rounded-sm p-8 text-center flex-1 flex flex-col items-center justify-center"
 					>
 						<p class="text-shadow font-mono text-sm mb-2">
 							nothing here yet
@@ -422,7 +422,7 @@
 		}}
 		style="background-color: rgba(10, 10, 10, 0.7);"
 	>
-		<div class="bg-concrete border border-ash w-full max-w-3xl max-h-[80vh] flex flex-col">
+		<div class="bg-concrete border border-ash rounded-md w-full max-w-3xl max-h-[80vh] flex flex-col">
 			<!-- Header -->
 			<div class="border-b border-fog p-6">
 				<div class="flex items-baseline gap-3">
@@ -448,23 +448,23 @@
 					{#if repos.length > 0}
 						<div class="p-4 space-y-2">
 							{#each repos as repo (repo.id)}
-								<button
-									onclick={() => {
-										availableRepos = repos;
-										createDocpack(repo);
-									}}
-									class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all border border-fog hover:border-ash"
+							<button
+								onclick={() => {
+									availableRepos = repos;
+									createDocpack(repo);
+								}}
+								class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all border border-fog rounded-sm hover:border-ash"
 								>
 									<div class="flex items-center gap-2 mb-2">
 										<h4 class="text-base font-bold text-whisper truncate flex-1 font-mono">
 											{repo.name}
 										</h4>
-										{#if repo.private}
-											<span class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 font-mono shrink-0">
-												Private
-											</span>
-										{:else}
-											<span class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 font-mono shrink-0">
+									{#if repo.private}
+										<span class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 rounded-sm font-mono shrink-0">
+											Private
+										</span>
+									{:else}
+										<span class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 rounded-sm font-mono shrink-0">
 												Public
 											</span>
 										{/if}
@@ -504,7 +504,7 @@
 			<div class="border-t border-fog p-4">
 				<button
 					onclick={closeRepoListModal}
-					class="px-4 py-2 bg-fog/50 text-echo border border-ash hover:bg-ash hover:text-whisper transition-all font-mono text-sm"
+					class="px-4 py-2 bg-fog/50 text-echo border border-ash rounded-sm hover:bg-ash hover:text-whisper transition-all font-mono text-sm"
 				>
 					Cancel
 				</button>

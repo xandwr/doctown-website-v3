@@ -97,7 +97,7 @@
         onclick={handleBackdropClick}
     >
         <div
-            class="bg-fog border border-ash max-w-xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
+            class="bg-fog border border-ash rounded-md max-w-xl w-full mx-4 overflow-hidden animate-in fade-in zoom-in duration-200"
         >
             <!-- Header -->
             <div class="border-b border-ash px-5 py-4">
@@ -139,7 +139,7 @@
                 <div class="flex items-center gap-2">
                     <!-- Validity Status Bubble - Blue for valid, Red for invalid/failed -->
                     <div
-                        class="px-3 py-1.5 text-xs font-mono border rounded-full {(docpack.status === 'valid' || docpack.status === 'public') ? 'text-status-valid border-status-valid/40' : 'text-status-invalid border-status-invalid/40'}"
+                        class="px-3 py-1.5 text-xs font-mono border rounded-sm {(docpack.status === 'valid' || docpack.status === 'public') ? 'text-status-valid border-status-valid/40' : 'text-status-invalid border-status-invalid/40'}"
                     >
                         {(docpack.status === "valid" || docpack.status === "public") ? "valid" : docpack.status}
                     </div>
@@ -157,7 +157,7 @@
                                     handlePublish();
                                 }
                             }}
-                            class="px-3 py-1.5 text-xs font-mono border rounded-full cursor-pointer transition-colors {docpack.status === 'public' ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10' : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
+                            class="px-3 py-1.5 text-xs font-mono border rounded-sm cursor-pointer transition-colors {docpack.status === 'public' ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10' : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
                             role="button"
                             tabindex="0"
                             title="Click to toggle privacy"
@@ -216,9 +216,15 @@
                         <a
                             href={docpack.file_url}
                             download
-                            class="block w-full bg-action-primary/20 text-action-primary border border-action-primary/40 px-4 py-2 text-sm font-medium hover:bg-action-primary/30 transition-colors text-center"
+                            class="block w-full bg-action-primary/20 text-action-primary border border-action-primary/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-action-primary/30 transition-colors text-center"
                         >
                             Download
+                        </a>
+                        <a
+                            href="/docpacks/{docpack.id}"
+                            class="block w-full bg-corpse/10 text-corpse border border-corpse/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-corpse/20 transition-colors text-center"
+                        >
+                            View Docs
                         </a>
                     {/if}
 
@@ -230,7 +236,7 @@
                         {#if onCancel}
                             <button
                                 onclick={handleCancel}
-                                class="w-full bg-action-cancel/20 text-action-cancel border border-action-cancel/40 px-4 py-2 text-sm font-medium hover:bg-action-cancel/30 transition-colors"
+                                class="w-full bg-action-cancel/20 text-action-cancel border border-action-cancel/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-action-cancel/30 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -272,7 +278,7 @@
         class="fixed inset-0 bg-void/90 backdrop-blur-sm z-60 flex items-center justify-center"
         onclick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
     >
-        <div class="bg-fog border border-action-danger max-w-sm w-full mx-4 overflow-hidden">
+        <div class="bg-fog border border-action-danger rounded-md max-w-sm w-full mx-4 overflow-hidden">
             <!-- Header -->
             <div class="border-b border-ash px-5 py-4">
                 <h3 class="text-lg font-normal text-action-danger">Delete Docpack?</h3>
@@ -292,13 +298,13 @@
             <div class="border-t border-ash px-5 py-3 flex gap-2">
                 <button
                     onclick={handleDeleteCancel}
-                    class="flex-1 bg-ash/50 hover:bg-ash text-whisper px-4 py-1.5 text-xs transition-colors"
+                    class="flex-1 bg-ash/50 hover:bg-ash text-whisper rounded-sm px-4 py-1.5 text-xs transition-colors"
                 >
                     Cancel
                 </button>
                 <button
                     onclick={handleDeleteConfirm}
-                    class="flex-1 bg-action-danger/20 hover:bg-action-danger/30 text-action-danger border border-action-danger/40 px-4 py-1.5 text-xs font-medium transition-colors"
+                    class="flex-1 bg-action-danger/20 hover:bg-action-danger/30 text-action-danger border border-action-danger/40 rounded-sm px-4 py-1.5 text-xs font-medium transition-colors"
                 >
                     Delete
                 </button>

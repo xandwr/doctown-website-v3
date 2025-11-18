@@ -78,13 +78,13 @@
 		</h3>
 		{#if repo.private}
 			<span
-				class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 font-mono shrink-0"
+				class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 rounded-sm font-mono shrink-0"
 			>
 				Private
 			</span>
 		{:else}
 			<span
-				class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 font-mono shrink-0"
+				class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 rounded-sm font-mono shrink-0"
 			>
 				Public
 			</span>

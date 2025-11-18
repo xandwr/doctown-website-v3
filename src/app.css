@@ -2,15 +2,15 @@
 
 @theme {
   /* Tailwind v4 theme variables */
-  --color-void: #0a0a0a;
+  --color-void: #000000;
   --color-concrete: #1a1a1a;
   --color-fog: #2a2a2a;
   --color-ash: #3a3a3a;
   --color-dust: #4a4a4a;
 
-  --color-whisper: #a0a0a0;
-  --color-echo: #707070;
-  --color-shadow: #505050;
+  --color-whisper: #e8e8e8;
+  --color-echo: #b8b8b8;
+  --color-shadow: #888888;
 
   --color-decay: #7a6b5e;
   --color-rust: #8a7060;
@@ -18,101 +18,106 @@
   --color-static: #606060;
   --color-blood: #6b3a3a;
 
-  --color-status-valid: #4a8fc7;
-  --color-status-valid-light: #5a9fd7;
-  --color-status-valid-dark: #3a7fb7;
-  --color-status-invalid: #c75a5a;
-  --color-status-invalid-light: #d76a6a;
-  --color-status-invalid-dark: #b74a4a;
+  --color-status-valid: #60b5ff;
+  --color-status-valid-light: #85c9ff;
+  --color-status-valid-dark: #3a9fe8;
+  --color-status-invalid: #ff6b6b;
+  --color-status-invalid-light: #ff9090;
+  --color-status-invalid-dark: #e84545;
 
-  --color-privacy-public: #5a9c6b;
-  --color-privacy-public-light: #6aac7b;
-  --color-privacy-public-dark: #4a8c5b;
-  --color-privacy-private: #9370c7;
-  --color-privacy-private-light: #a380d7;
-  --color-privacy-private-dark: #8360b7;
+  --color-privacy-public: #6fda88;
+  --color-privacy-public-light: #90e8a8;
+  --color-privacy-public-dark: #52c46f;
+  --color-privacy-private: #b894ff;
+  --color-privacy-private-light: #d0b3ff;
+  --color-privacy-private-dark: #9d75f0;
 
-  --color-action-primary: #5a8f9f;
-  --color-action-primary-light: #6a9faf;
-  --color-action-primary-dark: #4a7f8f;
-  --color-action-danger: #c75a5a;
-  --color-action-danger-light: #d76a6a;
-  --color-action-danger-dark: #b74a4a;
-  --color-action-cancel: #b76a6a;
-  --color-action-cancel-light: #c77a7a;
-  --color-action-cancel-dark: #a75a5a;
+  --color-action-primary: #70c4e0;
+  --color-action-primary-light: #95d8ed;
+  --color-action-primary-dark: #4dafcc;
+  --color-action-danger: #ff6b6b;
+  --color-action-danger-light: #ff9090;
+  --color-action-danger-dark: #e84545;
+  --color-action-cancel: #d88888;
+  --color-action-cancel-light: #e8a8a8;
+  --color-action-cancel-dark: #c86868;
 
-  --color-info: #6a9fb0;
-  --color-info-light: #7aafc0;
-  --color-info-dark: #5a8fa0;
-  --color-warning: #b89060;
-  --color-warning-light: #c8a070;
-  --color-warning-dark: #a88050;
-  --color-success: #5a9c6b;
-  --color-success-light: #6aac7b;
-  --color-success-dark: #4a8c5b;
+  --color-info: #85d0e8;
+  --color-info-light: #a8e0f0;
+  --color-info-dark: #65bdd8;
+  --color-warning: #f0b870;
+  --color-warning-light: #ffd090;
+  --color-warning-dark: #d89850;
+  --color-success: #6fda88;
+  --color-success-light: #90e8a8;
+  --color-success-dark: #52c46f;
 }
 
 /* palette */
 :root {
-  /* Base tones - concrete grays, institutional */
-  --color-void: #0a0a0a;
+  /* Base tones - true void to institutional concrete */
+  --color-void: #000000;
   --color-concrete: #1a1a1a;
   --color-fog: #2a2a2a;
   --color-ash: #3a3a3a;
   --color-dust: #4a4a4a;
 
-  /* Text - desaturated, cold */
-  --color-whisper: #a0a0a0;
-  --color-echo: #707070;
-  --color-shadow: #505050;
+  /* Text - brighter, piercing through darkness */
+  --color-whisper: #e8e8e8;
+  --color-echo: #b8b8b8;
+  --color-shadow: #888888;
 
   /* Legacy functional accents - desaturated, unsettling */
-  --color-decay: #7a6b5e; /* Desaturated brown-gray for danger/delete */
-  --color-rust: #8a7060; /* Muted rust for warnings */
-  --color-corpse: #6b7a7a; /* Sickly blue-gray for info */
-  --color-static: #606060; /* Neutral gray for inactive states */
-  --color-blood: #6b3a3a; /* Dark, dried blood red - not vibrant */
+  --color-decay: #7a6b5e;
+  /* Desaturated brown-gray for danger/delete */
+  --color-rust: #8a7060;
+  /* Muted rust for warnings */
+  --color-corpse: #6b7a7a;
+  /* Sickly blue-gray for info */
+  --color-static: #606060;
+  /* Neutral gray for inactive states */
+  --color-blood: #6b3a3a;
+  /* Dark, dried blood red - not vibrant */
 
   /* === Semantic color system === */
 
-  /* Status colors (validity indicators) */
-  --color-status-valid: #4a8fc7;
-  --color-status-valid-light: #5a9fd7;
-  --color-status-valid-dark: #3a7fb7;
-  --color-status-invalid: #c75a5a;
-  --color-status-invalid-light: #d76a6a;
-  --color-status-invalid-dark: #b74a4a;
+  /* Status colors (validity indicators) - luminous, hope-bringing */
+  --color-status-valid: #60b5ff;
+  --color-status-valid-light: #85c9ff;
+  --color-status-valid-dark: #3a9fe8;
+  --color-status-invalid: #ff6b6b;
+  --color-status-invalid-light: #ff9090;
+  --color-status-invalid-dark: #e84545;
 
-  /* Privacy colors */
-  --color-privacy-public: #5a9c6b;
-  --color-privacy-public-light: #6aac7b;
-  --color-privacy-public-dark: #4a8c5b;
-  --color-privacy-private: #9370c7;
-  --color-privacy-private-light: #a380d7;
-  --color-privacy-private-dark: #8360b7;
+  /* Privacy colors - vibrant, cutting through void */
+  --color-privacy-public: #6fda88;
+  --color-privacy-public-light: #90e8a8;
+  --color-privacy-public-dark: #52c46f;
+  --color-privacy-private: #b894ff;
+  --color-privacy-private-light: #d0b3ff;
+  --color-privacy-private-dark: #9d75f0;
 
-  /* Action colors */
-  --color-action-primary: #5a8f9f;
-  --color-action-primary-light: #6a9faf;
-  --color-action-primary-dark: #4a7f8f;
-  --color-action-danger: #c75a5a;
-  --color-action-danger-light: #d76a6a;
-  --color-action-danger-dark: #b74a4a;
-  --color-action-cancel: #b76a6a;
-  --color-action-cancel-light: #c77a7a;
-  --color-action-cancel-dark: #a75a5a;
+  /* Action colors - bright, decisive */
+  --color-action-primary: #70c4e0;
+  --color-action-primary-light: #95d8ed;
+  --color-action-primary-dark: #4dafcc;
+  --color-action-danger: #ff6b6b;
+  --color-action-danger-light: #ff9090;
+  --color-action-danger-dark: #e84545;
+  --color-action-cancel: #d88888;
+  --color-action-cancel-light: #e8a8a8;
+  --color-action-cancel-dark: #c86868;
 
-  /* Utility colors */
-  --color-info: #6a9fb0;
-  --color-info-light: #7aafc0;
-  --color-info-dark: #5a8fa0;
-  --color-warning: #b89060;
-  --color-warning-light: #c8a070;
-  --color-warning-dark: #a88050;
-  --color-success: #5a9c6b;
-  --color-success-light: #6aac7b;
-  --color-success-dark: #4a8c5b;
+  /* Utility colors - luminous, guiding */
+  --color-info: #85d0e8;
+  --color-info-light: #a8e0f0;
+  --color-info-dark: #65bdd8;
+  --color-warning: #f0b870;
+  --color-warning-light: #ffd090;
+  --color-warning-dark: #d89850;
+  --color-success: #6fda88;
+  --color-success-light: #90e8a8;
+  --color-success-dark: #52c46f;
 }
 
 body {
