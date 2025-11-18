@@ -4,6 +4,7 @@
 	import DocpackConfigModal from "$lib/components/DocpackConfigModal.svelte";
 	import BuildLogs from "$lib/components/BuildLogs.svelte";
 	import type { Docpack, DocpackStatus } from "$lib/types";
+	import { hasASTSupport, getLanguageTheme } from "$lib/languageSupport";
 
 	interface GitHubRepo {
 		id: number;
@@ -26,6 +27,7 @@
 	let showBuildLogs = $state(false);
 	let buildLogsJobId = $state<string | null>(null);
 	let showRepoListModal = $state(false);
+	let hideUnsupportedRepos = $state(false);
 	let docpackModalPosition = $state<{
 		top: number;
 		left: number;
@@ -425,13 +427,24 @@
 		<div class="bg-concrete border border-ash rounded-md w-full max-w-3xl max-h-[80vh] flex flex-col">
 			<!-- Header -->
 			<div class="border-b border-fog p-6">
-				<div class="flex items-baseline gap-3">
-					<h3 class="text-xl font-bold text-whisper">Select Repository</h3>
-					{#await data.repos then repos}
-						<span class="text-sm text-shadow font-mono">
-							// {repos.length} {repos.length === 1 ? 'repo' : 'repos'}
-						</span>
-					{/await}
+				<div class="flex items-center justify-between gap-4">
+					<div class="flex items-baseline gap-3">
+						<h3 class="text-xl font-bold text-whisper">Select Repository</h3>
+						{#await data.repos then repos}
+							{@const filtered = hideUnsupportedRepos ? repos.filter(r => hasASTSupport(r.language)) : repos}
+							<span class="text-sm text-shadow font-mono">
+								// {filtered.length} {filtered.length === 1 ? 'repo' : 'repos'}
+							</span>
+						{/await}
+					</div>
+					<button
+						onclick={() => hideUnsupportedRepos = !hideUnsupportedRepos}
+						class="flex items-center gap-2 px-3 py-1.5 rounded-sm border font-mono text-xs transition-all {hideUnsupportedRepos ? 'bg-corpse/20 text-corpse border-corpse/40' : 'bg-concrete border-fog text-shadow hover:border-ash hover:text-whisper'}"
+						title={hideUnsupportedRepos ? 'Show all repos' : 'Hide repos without AST support'}
+					>
+						<span>{hideUnsupportedRepos ? '✓' : '○'}</span>
+						<span>AST only</span>
+					</button>
 				</div>
 			</div>
 
@@ -445,20 +458,28 @@
 						</div>
 					</div>
 				{:then repos}
-					{#if repos.length > 0}
+					{@const filteredRepos = hideUnsupportedRepos ? repos.filter(r => hasASTSupport(r.language)) : repos}
+					{#if filteredRepos.length > 0}
 						<div class="p-4 space-y-2">
-							{#each repos as repo (repo.id)}
+							{#each filteredRepos as repo (repo.id)}
+							{@const isSupported = hasASTSupport(repo.language)}
+							{@const theme = getLanguageTheme(repo.language)}
 							<button
 								onclick={() => {
 									availableRepos = repos;
 									createDocpack(repo);
 								}}
-								class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all border border-fog rounded-sm hover:border-ash"
+								class="w-full text-left bg-concrete/30 p-4 hover:bg-fog/50 transition-all border rounded-sm {repo.language ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-fog hover:border-ash'} {!isSupported && repo.language ? 'opacity-60' : ''}"
 								>
 									<div class="flex items-center gap-2 mb-2">
-										<h4 class="text-base font-bold text-whisper truncate flex-1 font-mono">
+										<h4 class="text-base font-bold truncate flex-1 font-mono {isSupported ? 'text-whisper' : 'text-shadow'}">
 											{repo.name}
 										</h4>
+									{#if isSupported && repo.language}
+										<span class="px-2 py-0.5 text-xs bg-corpse/20 text-corpse border border-corpse/40 rounded-sm font-mono shrink-0" title="Full AST support available">
+											✓ AST
+										</span>
+									{/if}
 									{#if repo.private}
 										<span class="px-2 py-0.5 text-xs bg-static/20 text-shadow border border-static/50 rounded-sm font-mono shrink-0">
 											Private
@@ -470,13 +491,16 @@
 										{/if}
 									</div>
 									{#if repo.description}
-										<p class="text-echo text-xs mb-3 line-clamp-2 font-light">
+										<p class="text-xs mb-3 line-clamp-2 font-light {isSupported ? 'text-echo' : 'text-shadow/70'}">
 											{repo.description}
 										</p>
 									{/if}
-									<div class="flex items-center gap-3 text-xs text-shadow font-mono">
+									<div class="flex items-center gap-3 text-xs font-mono {isSupported ? 'text-shadow' : 'text-shadow/50'}">
 										{#if repo.language}
-											<span>{repo.language}</span>
+											<span class="flex items-center gap-1.5 {theme.textColor}">
+												<span class="w-2 h-2 {theme.dotColor} {!isSupported ? 'opacity-50' : ''}"></span>
+												{repo.language}
+											</span>
 										{/if}
 										{#if repo.stargazers_count > 0}
 											<span class="flex items-center gap-1">
@@ -490,7 +514,19 @@
 						</div>
 					{:else}
 						<div class="p-12 flex items-center justify-center">
-							<p class="text-decay font-mono text-sm">No repositories found</p>
+							<div class="text-center">
+								<p class="text-decay font-mono text-sm mb-2">
+									{hideUnsupportedRepos ? 'No repos with AST support found' : 'No repositories found'}
+								</p>
+								{#if hideUnsupportedRepos}
+									<button
+										onclick={() => hideUnsupportedRepos = false}
+										class="text-xs text-corpse hover:underline font-mono"
+									>
+										Show all repos
+									</button>
+								{/if}
+							</div>
 						</div>
 					{/if}
 				{:catch}
