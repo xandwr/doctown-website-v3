@@ -169,9 +169,9 @@
 
 				const job = await response.json();
 
-				// Update the docpack status
+				// Update the docpack status (match by id OR job_id since pending jobs use job.id as id)
 				docpacks = docpacks.map(d =>
-					d.id === jobId ? { ...d, status: job.status } : d
+					(d.id === jobId || d.job_id === jobId) ? { ...d, status: job.status } : d
 				);
 
 				// Stop polling if job is completed or failed
@@ -182,8 +182,11 @@
 						pollingIntervals.delete(jobId);
 					}
 
-					// If completed, refetch docpacks to get the actual docpack data
+					// If completed, refetch docpacks to get the actual docpack data with proper IDs
 					if (job.status === 'completed') {
+						// Remove the pending job entry (which had job_id as its id)
+						docpacks = docpacks.filter(d => d.id !== jobId);
+						// Fetch the new completed docpack
 						await fetchDocpacks();
 					}
 				}
