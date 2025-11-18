@@ -69,14 +69,14 @@
 	function getLevelColor(level: string) {
 		switch (level) {
 			case 'error':
-				return 'text-red-400';
+				return 'text-status-invalid';
 			case 'warning':
-				return 'text-yellow-400';
+				return 'text-warning';
 			case 'debug':
-				return 'text-gray-400';
+				return 'text-shadow';
 			case 'info':
 			default:
-				return 'text-emerald-400';
+				return 'text-info';
 		}
 	}
 
@@ -136,7 +136,7 @@
 				{#if onCancel}
 					<button
 						onclick={onCancel}
-						class="px-3 py-1.5 text-sm font-mono bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded transition-colors"
+						class="px-3 py-1.5 text-sm font-mono bg-action-cancel/10 text-action-cancel hover:bg-action-cancel/20 border border-action-cancel/30 rounded transition-colors"
 						aria-label="Cancel job"
 					>
 						Cancel Job
@@ -166,7 +166,7 @@
 				</div>
 			{:else if error}
 				<div class="flex items-center justify-center h-full">
-					<div class="text-red-400">{error}</div>
+					<div class="text-status-invalid">{error}</div>
 				</div>
 			{:else if logs.length === 0}
 				<div class="flex items-center justify-center h-full">

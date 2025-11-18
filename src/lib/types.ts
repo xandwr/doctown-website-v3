@@ -55,3 +55,53 @@ export const STATUS_CONFIG: Record<
     description: "Docpack generation in progress. Check back soon!",
   },
 };
+
+// Docpack content types - matches the DOCPACK_FORMAT.md specification
+export interface DocpackManifest {
+  docpack_format: number;
+  project: {
+    name: string;
+    version: string;
+    repo: string;
+    commit: string;
+  };
+  generated_at: string;
+  language_summary: Record<string, number>;
+  stats: {
+    symbols_extracted: number;
+    docs_generated: number;
+  };
+  public: boolean;
+}
+
+export interface DocpackSymbol {
+  id: string;
+  kind: string;
+  file: string;
+  line: number;
+  signature: string;
+  doc_id: string;
+  fields?: string[];
+}
+
+export interface DocpackParameter {
+  name: string;
+  type: string;
+  description: string;
+}
+
+export interface DocpackDocumentation {
+  symbol: string;
+  summary: string;
+  description: string;
+  parameters: DocpackParameter[];
+  returns: string;
+  example: string;
+  notes: string[];
+}
+
+export interface DocpackContent {
+  manifest: DocpackManifest;
+  symbols: DocpackSymbol[];
+  docs: Record<string, DocpackDocumentation>;
+}

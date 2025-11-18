@@ -88,11 +88,25 @@
 		</p>
 	{/if}
 
-	{#if docpack.version}
-		<div class="text-xs">
-			<span class="text-shadow font-mono">
-				v{docpack.version}
-			</span>
-		</div>
-	{/if}
+	<div class="flex items-center justify-between gap-2 mt-3">
+		{#if docpack.version}
+			<div class="text-xs">
+				<span class="text-shadow font-mono">
+					v{docpack.version}
+				</span>
+			</div>
+		{:else}
+			<div></div>
+		{/if}
+		
+		{#if docpack.status === "public" || docpack.status === "valid"}
+			<a
+				href="/docpacks/{docpack.id}"
+				onclick={(e) => e.stopPropagation()}
+				class="text-xs font-mono px-3 py-1 bg-corpse/10 hover:bg-corpse/20 text-corpse border border-corpse/40 transition-colors"
+			>
+				View Docs
+			</a>
+		{/if}
+	</div>
 </div>

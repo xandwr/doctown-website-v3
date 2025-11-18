@@ -1,6 +1,59 @@
 @import "tailwindcss";
 
-/* Liminal, Silent Hill-inspired palette */
+@theme {
+  /* Tailwind v4 theme variables */
+  --color-void: #0a0a0a;
+  --color-concrete: #1a1a1a;
+  --color-fog: #2a2a2a;
+  --color-ash: #3a3a3a;
+  --color-dust: #4a4a4a;
+
+  --color-whisper: #a0a0a0;
+  --color-echo: #707070;
+  --color-shadow: #505050;
+
+  --color-decay: #7a6b5e;
+  --color-rust: #8a7060;
+  --color-corpse: #6b7a7a;
+  --color-static: #606060;
+  --color-blood: #6b3a3a;
+
+  --color-status-valid: #4a8fc7;
+  --color-status-valid-light: #5a9fd7;
+  --color-status-valid-dark: #3a7fb7;
+  --color-status-invalid: #c75a5a;
+  --color-status-invalid-light: #d76a6a;
+  --color-status-invalid-dark: #b74a4a;
+
+  --color-privacy-public: #5a9c6b;
+  --color-privacy-public-light: #6aac7b;
+  --color-privacy-public-dark: #4a8c5b;
+  --color-privacy-private: #9370c7;
+  --color-privacy-private-light: #a380d7;
+  --color-privacy-private-dark: #8360b7;
+
+  --color-action-primary: #5a8f9f;
+  --color-action-primary-light: #6a9faf;
+  --color-action-primary-dark: #4a7f8f;
+  --color-action-danger: #c75a5a;
+  --color-action-danger-light: #d76a6a;
+  --color-action-danger-dark: #b74a4a;
+  --color-action-cancel: #b76a6a;
+  --color-action-cancel-light: #c77a7a;
+  --color-action-cancel-dark: #a75a5a;
+
+  --color-info: #6a9fb0;
+  --color-info-light: #7aafc0;
+  --color-info-dark: #5a8fa0;
+  --color-warning: #b89060;
+  --color-warning-light: #c8a070;
+  --color-warning-dark: #a88050;
+  --color-success: #5a9c6b;
+  --color-success-light: #6aac7b;
+  --color-success-dark: #4a8c5b;
+}
+
+/* palette */
 :root {
   /* Base tones - concrete grays, institutional */
   --color-void: #0a0a0a;
@@ -14,14 +67,52 @@
   --color-echo: #707070;
   --color-shadow: #505050;
 
-  /* Functional accents - desaturated, unsettling */
+  /* Legacy functional accents - desaturated, unsettling */
   --color-decay: #7a6b5e; /* Desaturated brown-gray for danger/delete */
   --color-rust: #8a7060; /* Muted rust for warnings */
   --color-corpse: #6b7a7a; /* Sickly blue-gray for info */
   --color-static: #606060; /* Neutral gray for inactive states */
-
-  /* Strategic accent - only for important CTAs */
   --color-blood: #6b3a3a; /* Dark, dried blood red - not vibrant */
+
+  /* === Semantic color system === */
+
+  /* Status colors (validity indicators) */
+  --color-status-valid: #4a8fc7;
+  --color-status-valid-light: #5a9fd7;
+  --color-status-valid-dark: #3a7fb7;
+  --color-status-invalid: #c75a5a;
+  --color-status-invalid-light: #d76a6a;
+  --color-status-invalid-dark: #b74a4a;
+
+  /* Privacy colors */
+  --color-privacy-public: #5a9c6b;
+  --color-privacy-public-light: #6aac7b;
+  --color-privacy-public-dark: #4a8c5b;
+  --color-privacy-private: #9370c7;
+  --color-privacy-private-light: #a380d7;
+  --color-privacy-private-dark: #8360b7;
+
+  /* Action colors */
+  --color-action-primary: #5a8f9f;
+  --color-action-primary-light: #6a9faf;
+  --color-action-primary-dark: #4a7f8f;
+  --color-action-danger: #c75a5a;
+  --color-action-danger-light: #d76a6a;
+  --color-action-danger-dark: #b74a4a;
+  --color-action-cancel: #b76a6a;
+  --color-action-cancel-light: #c77a7a;
+  --color-action-cancel-dark: #a75a5a;
+
+  /* Utility colors */
+  --color-info: #6a9fb0;
+  --color-info-light: #7aafc0;
+  --color-info-dark: #5a8fa0;
+  --color-warning: #b89060;
+  --color-warning-light: #c8a070;
+  --color-warning-dark: #a88050;
+  --color-success: #5a9c6b;
+  --color-success-light: #6aac7b;
+  --color-success-dark: #4a8c5b;
 }
 
 body {
