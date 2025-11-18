@@ -26,12 +26,25 @@ export const POST: RequestHandler = async ({ request, params }) => {
       return json({ error: "Missing message" }, { status: 400 });
     }
 
+    // Convert timestamp from milliseconds to ISO string if needed
+    let timestampISO: string;
+    if (timestamp) {
+      if (typeof timestamp === "number") {
+        // Convert milliseconds to ISO string
+        timestampISO = new Date(timestamp).toISOString();
+      } else {
+        timestampISO = timestamp;
+      }
+    } else {
+      timestampISO = new Date().toISOString();
+    }
+
     // Add log to database
     await addJobLog({
       job_id: jobId,
       level: level || "info",
       message,
-      timestamp: timestamp || new Date().toISOString(),
+      timestamp: timestampISO,
     });
 
     return json({ success: true });
