@@ -216,7 +216,7 @@
                             <div>
                                 <div class="flex items-center gap-2 mb-2">
                                     <h3 class="text-lg font-semibold text-warning">{getSymbolName(selectedSymbol.id)}</h3>
-                                    <span class="px-2 py-0.5 rounded text-xs bg-text-secondary/10 text-text-secondary/70">t-secondary/70">
+                                    <span class="px-2 py-0.5 rounded text-xs bg-text-secondary/10 text-text-secondary/70">
                                         {selectedSymbol.kind}
                                     </span>
                                 </div>
