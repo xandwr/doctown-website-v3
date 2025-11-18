@@ -164,7 +164,7 @@
                     {#each filteredSymbols() as symbol}
                         <button
                             onclick={() => selectSymbol(symbol)}
-                            class="w-full text-left px-4 py-3 border-b border-corpse/10 hover:bg-rust/5 transition-colors {selectedSymbol?.id === symbol.id ? 'bg-rust/10' : ''}"
+                            class="w-full text-left px-4 py-3 border-b border-corpse/10 hover:bg-rust/5 transition-colors {selectedSymbol?.id === symbol.id ? 'bg-warning/20 border-l-2 border-l-warning' : ''}"
                         >
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex-1 min-w-0">
