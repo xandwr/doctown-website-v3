@@ -78,7 +78,7 @@ export const POST: RequestHandler = async ({ request }) => {
         .from("users")
         .select("access_token")
         .eq("id", job.user_id)
-        .single();
+        .single<{ access_token: string | null }>();
 
       if (user?.access_token) {
         const repoApiUrl = `https://api.github.com/repos/${fullName}`;

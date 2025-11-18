@@ -17,6 +17,7 @@
     let loadingEdits = $state(false);
     let isOwner = $state(false);
     let exporting = $state(false);
+    let focusField = $state<string | undefined>(undefined);
 
     const docpackId = $derived($page.params.id);
     const hasAnyEdits = $derived(Object.keys(edits).length > 0);
@@ -207,6 +208,12 @@
 
     function toggleEditMode() {
         editMode = !editMode;
+        focusField = undefined;
+    }
+
+    function startEditingField(field: string) {
+        focusField = field;
+        editMode = true;
     }
 
     async function exportWithEdits() {
@@ -381,6 +388,7 @@
                         onCancel={toggleEditMode}
                         onRevert={revertEdit}
                         hasEdits={!!edits[selectedSymbol.id]}
+                        {focusField}
                     />
                 {:else}
                     <div class="shrink-0 bg-warning/10 border-b border-border-default px-4 py-2 flex justify-between items-center">
@@ -437,14 +445,40 @@
 
                             <!-- Summary -->
                             <div>
-                                <h4 class="text-sm font-semibold text-text-secondary mb-2">Summary</h4>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="text-sm font-semibold text-text-secondary">Summary</h4>
+                                    {#if isOwner}
+                                        <button
+                                            onclick={() => startEditingField('summary')}
+                                            class="text-text-secondary/30 hover:text-warning transition-colors"
+                                            title="Edit summary"
+                                        >
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                    {/if}
+                                </div>
                                 <p class="text-sm text-text-secondary/80 leading-relaxed">{selectedDoc.summary}</p>
                             </div>
 
                             <!-- Description -->
                             {#if selectedDoc.description}
                                 <div>
-                                    <h4 class="text-sm font-semibold text-text-secondary mb-2">Description</h4>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-semibold text-text-secondary">Description</h4>
+                                        {#if isOwner}
+                                            <button
+                                                onclick={() => startEditingField('description')}
+                                                class="text-text-secondary/30 hover:text-warning transition-colors"
+                                                title="Edit description"
+                                            >
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        {/if}
+                                    </div>
                                     <p class="text-sm text-text-secondary/80 leading-relaxed">{selectedDoc.description}</p>
                                 </div>
                             {/if}
@@ -452,7 +486,20 @@
                             <!-- Parameters -->
                             {#if selectedDoc.parameters && selectedDoc.parameters.length > 0}
                                 <div>
-                                    <h4 class="text-sm font-semibold text-text-secondary mb-2">Parameters</h4>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-semibold text-text-secondary">Parameters</h4>
+                                        {#if isOwner}
+                                            <button
+                                                onclick={() => startEditingField('parameters')}
+                                                class="text-text-secondary/30 hover:text-warning transition-colors"
+                                                title="Edit parameters"
+                                            >
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        {/if}
+                                    </div>
                                     <div class="space-y-2">
                                         {#each selectedDoc.parameters as param}
                                             <div class="bg-bg-primary border border-border-default rounded-sm p-3">
@@ -467,7 +514,20 @@
                             <!-- Returns -->
                             {#if selectedDoc.returns}
                                 <div>
-                                    <h4 class="text-sm font-semibold text-text-secondary mb-2">Returns</h4>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-semibold text-text-secondary">Returns</h4>
+                                        {#if isOwner}
+                                            <button
+                                                onclick={() => startEditingField('returns')}
+                                                class="text-text-secondary/30 hover:text-warning transition-colors"
+                                                title="Edit returns"
+                                            >
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        {/if}
+                                    </div>
                                     <p class="text-sm text-text-secondary/80">{selectedDoc.returns}</p>
                                 </div>
                             {/if}
@@ -475,7 +535,20 @@
                             <!-- Example -->
                             {#if selectedDoc.example}
                                 <div>
-                                    <h4 class="text-sm font-semibold text-text-secondary mb-2">Example</h4>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-semibold text-text-secondary">Example</h4>
+                                        {#if isOwner}
+                                            <button
+                                                onclick={() => startEditingField('example')}
+                                                class="text-text-secondary/30 hover:text-warning transition-colors"
+                                                title="Edit example"
+                                            >
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        {/if}
+                                    </div>
                                     <div class="bg-bg-primary border border-border-default rounded-sm p-3">
                                         <pre class="text-xs text-text-secondary overflow-x-auto whitespace-pre-wrap">{selectedDoc.example}</pre>
                                     </div>
@@ -485,7 +558,20 @@
                                 <!-- Notes -->
                                 {#if selectedDoc.notes && selectedDoc.notes.length > 0}
                                     <div>
-                                        <h4 class="text-sm font-semibold text-text-secondary mb-2">Notes</h4>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h4 class="text-sm font-semibold text-text-secondary">Notes</h4>
+                                            {#if isOwner}
+                                                <button
+                                                    onclick={() => startEditingField('notes')}
+                                                    class="text-text-secondary/30 hover:text-warning transition-colors"
+                                                    title="Edit notes"
+                                                >
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            {/if}
+                                        </div>
                                         <ul class="list-disc list-inside space-y-1">
                                             {#each selectedDoc.notes as note}
                                                 <li class="text-sm text-text-secondary/80">{note}</li>

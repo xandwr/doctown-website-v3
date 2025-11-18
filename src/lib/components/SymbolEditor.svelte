@@ -1,6 +1,8 @@
 <script lang="ts">
     import type { DocpackSymbol, DocpackDocumentation, DocpackParameter } from "$lib/types";
 
+    import { onMount, tick } from "svelte";
+
     interface Props {
         symbol: DocpackSymbol;
         doc: DocpackDocumentation;
@@ -8,9 +10,36 @@
         onCancel: () => void;
         onRevert: () => Promise<void>;
         hasEdits: boolean;
+        focusField?: string;
     }
 
-    let { symbol, doc, onSave, onCancel, onRevert, hasEdits }: Props = $props();
+    let { symbol, doc, onSave, onCancel, onRevert, hasEdits, focusField }: Props = $props();
+
+    // Focus the target field when component mounts
+    onMount(async () => {
+        if (focusField) {
+            await tick();
+            // Handle special cases for sections without direct input IDs
+            let elementId: string;
+            if (focusField === 'notes') {
+                // Scroll to notes section header
+                elementId = 'notes-section';
+            } else if (focusField === 'parameters') {
+                // Scroll to parameters section header
+                elementId = 'parameters-section';
+            } else {
+                elementId = `${focusField}-input`;
+            }
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Only focus if it's an input/textarea
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    element.focus();
+                }
+            }
+        }
+    });
 
     // Local state for editing
     let signature = $state(symbol.signature);
@@ -161,7 +190,7 @@
         </div>
 
         <!-- Parameters -->
-        <div class="space-y-3">
+        <div class="space-y-3" id="parameters-section">
             <div class="flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-text-secondary">Parameters</h3>
                 <button
@@ -243,7 +272,7 @@
         </div>
 
         <!-- Notes -->
-        <div class="space-y-3">
+        <div class="space-y-3" id="notes-section">
             <div class="flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-text-secondary">Notes</h3>
                 <button
