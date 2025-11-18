@@ -5,6 +5,9 @@
 	let { docpack }: { docpack: Docpack } = $props();
 
 	let showCopiedTooltip = $state(false);
+	let isEditingDescription = $state(false);
+	let editedDescription = $state(docpack.description || "");
+	let isSavingDescription = $state(false);
 
 	function formatDate(dateString: string) {
 		const date = new Date(dateString);
@@ -30,7 +33,53 @@
 		}
 	}
 
+	function startEditingDescription(event: MouseEvent) {
+		event.stopPropagation();
+		editedDescription = docpack.description || "";
+		isEditingDescription = true;
+	}
+
+	function cancelEditingDescription(event: MouseEvent) {
+		event.stopPropagation();
+		isEditingDescription = false;
+		editedDescription = docpack.description || "";
+	}
+
+	async function saveDescription(event: MouseEvent) {
+		event.stopPropagation();
+		isSavingDescription = true;
+
+		try {
+			const response = await fetch(`/api/docpacks/${docpack.id}`, {
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					description: editedDescription || null,
+				}),
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				docpack.description = result.docpack.description;
+				isEditingDescription = false;
+			} else {
+				console.error("Failed to update description");
+				alert("Failed to update description. Please try again.");
+			}
+		} catch (err) {
+			console.error("Error updating description:", err);
+			alert("Error updating description. Please try again.");
+		} finally {
+			isSavingDescription = false;
+		}
+	}
+
 	const statusConfig = $derived(STATUS_CONFIG[docpack.status]);
+
+	// Split username and repo for display
+	const [username, repo] = $derived(docpack.full_name.split("/"));
 
 	// Status badge styling - semantic, vibrant colors
 	const statusClasses = $derived(
@@ -44,10 +93,10 @@
 </script>
 
 <div
-	class="bg-bg-secondary border border-border-default rounded-sm p-4 hover:border-border-strong transition-all cursor-pointer"
+	class="bg-bg-secondary border border-border-default rounded-sm p-2 hover:border-border-strong transition-all cursor-pointer"
 >
 	<!-- Top row: Name, Status Badge, and Updated Date -->
-	<div class="flex items-center justify-between gap-2 mb-2">
+	<div class="flex items-start justify-between gap-1 mb-3">
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -55,11 +104,12 @@
 			onmouseleave={() => (showCopiedTooltip = false)}
 		>
 			<button
-				class="text-lg font-semibold text-text-primary cursor-copy hover:text-primary transition-colors hover:bg-hover-bg rounded-md px-4 border-2 border-border-subtle"
+				class="text-lg font-semibold text-text-primary text-left cursor-copy hover:text-primary transition-colors hover:bg-hover-bg bg-black/12 rounded-md px-1.5"
 				onclick={copyToClipboard}
 				title="Click to copy"
 			>
-				{docpack.full_name.replace("/", ":")}
+				<span class="block font-light">{username}:</span>
+				<span class="block">{repo}</span>
 			</button>
 			<!-- Tooltip that transitions between states -->
 			<span
@@ -84,10 +134,50 @@
 	</div>
 
 	<div class="mb-2">
-		<span class="text-text-tertiary text-xs font-mono">Description:</span>
-		<p class="text-text-secondary text-sm line-clamp-2 mt-1">
-			{docpack.description || "No description provided"}
-		</p>
+		<div class="flex items-start justify-between gap-2">
+			<span class="text-text-tertiary text-xs font-mono">Description:</span>
+			{#if !isEditingDescription}
+				<button
+					onclick={startEditingDescription}
+					class="text-xs underline text-primary hover:text-primary/80 font-mono transition-colors"
+					title="Edit description"
+				>
+					Edit Desc.
+				</button>
+			{/if}
+		</div>
+		{#if isEditingDescription}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div onclick={(e) => e.stopPropagation()} class="mt-1">
+				<textarea
+					bind:value={editedDescription}
+					class="w-full text-sm bg-bg-primary border border-border-default rounded-sm p-2 text-text-primary focus:outline-none focus:border-primary resize-none"
+					rows="3"
+					placeholder="Enter a description for this docpack..."
+				></textarea>
+				<div class="flex gap-2 mt-2">
+					<button
+						onclick={saveDescription}
+						disabled={isSavingDescription}
+						class="px-3 py-1 text-xs font-mono bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{isSavingDescription ? "Saving..." : "Save"}
+					</button>
+					<button
+						onclick={cancelEditingDescription}
+						disabled={isSavingDescription}
+						class="px-3 py-1 text-xs font-mono bg-bg-primary hover:bg-hover-bg text-text-secondary border border-border-default rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						Cancel
+					</button>
+				</div>
+			</div>
+		{:else}
+			<p class="text-text-secondary text-sm line-clamp-2 mt-1">
+				{docpack.description || "No description provided"}
+			</p>
+		{/if}
 	</div>
 
 	<div class="flex items-center justify-between gap-2 mt-3">

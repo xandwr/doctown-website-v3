@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/stores";
-    import type { DocpackContent, DocpackSymbol, DocpackDocumentation } from "$lib/types";
+    import type { DocpackContent, DocpackSymbol, DocpackDocumentation, SymbolEdit } from "$lib/types";
+    import SymbolEditor from "$lib/components/SymbolEditor.svelte";
 
     let loading = $state(true);
     let error = $state<string | null>(null);
@@ -11,8 +12,14 @@
     let searchQuery = $state("");
     let filterKind = $state<string>("all");
     let showMobileDoc = $state(false);
+    let editMode = $state(false);
+    let edits = $state<Record<string, SymbolEdit>>({});
+    let loadingEdits = $state(false);
+    let isOwner = $state(false);
+    let exporting = $state(false);
 
     const docpackId = $derived($page.params.id);
+    const hasAnyEdits = $derived(Object.keys(edits).length > 0);
 
     // Extract human-readable symbol name from ID
     function getSymbolName(symbolId: string): string {
@@ -58,6 +65,109 @@
         return Array.from(kinds).sort();
     });
 
+    // Merge edits with original symbol and doc data
+    const getMergedSymbol = (symbol: DocpackSymbol): DocpackSymbol => {
+        const edit = edits[symbol.id];
+        if (!edit) return symbol;
+        return {
+            ...symbol,
+            signature: edit.signature ?? symbol.signature,
+            kind: edit.kind ?? symbol.kind,
+        };
+    };
+
+    const getMergedDoc = (doc: DocpackDocumentation, symbolId: string): DocpackDocumentation => {
+        const edit = edits[symbolId];
+        if (!edit) return doc;
+        return {
+            ...doc,
+            summary: edit.summary ?? doc.summary,
+            description: edit.description ?? doc.description,
+            parameters: edit.parameters ?? doc.parameters,
+            returns: edit.returns ?? doc.returns,
+            example: edit.example ?? doc.example,
+            notes: edit.notes ?? doc.notes,
+        };
+    };
+
+    async function loadEdits() {
+        if (!$page.data.user) return;
+        
+        loadingEdits = true;
+        try {
+            const response = await fetch(`/api/docpacks/${docpackId}/edits`);
+            if (response.ok) {
+                edits = await response.json();
+            }
+        } catch (err) {
+            console.error("Failed to load edits:", err);
+        } finally {
+            loadingEdits = false;
+        }
+    }
+
+    async function saveEdit(editData: any) {
+        try {
+            const response = await fetch(`/api/docpacks/${docpackId}/edits`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to save edit");
+            }
+
+            const savedEdit = await response.json();
+            edits = { ...edits, [savedEdit.symbol_id]: savedEdit };
+            
+            // Update the displayed content
+            if (selectedSymbol) {
+                selectedSymbol = getMergedSymbol(selectedSymbol);
+                selectedDoc = selectedDoc ? getMergedDoc(selectedDoc, selectedSymbol.id) : null;
+            }
+            
+            editMode = false;
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Failed to save edit");
+        }
+    }
+
+    async function revertEdit() {
+        if (!selectedSymbol) return;
+        
+        const symbolId = selectedSymbol.id;
+        const docId = selectedSymbol.doc_id;
+        
+        try {
+            const response = await fetch(`/api/docpacks/${docpackId}/edits`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ symbol_id: symbolId }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to revert edit");
+            }
+
+            const { [symbolId]: _, ...remainingEdits } = edits;
+            edits = remainingEdits;
+            
+            // Refresh the view with original content
+            if (content) {
+                const originalSymbol = content.symbols.find(s => s.id === symbolId);
+                const originalDoc = content.docs[docId];
+                if (originalSymbol) selectedSymbol = originalSymbol;
+                if (originalDoc) selectedDoc = originalDoc;
+            }
+            
+            editMode = false;
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Failed to revert edit");
+        }
+    }
+
     onMount(async () => {
         try {
             const response = await fetch(`/api/docpacks/${docpackId}/content`);
@@ -66,6 +176,18 @@
                 throw new Error(errorData.error || "Failed to load docpack");
             }
             content = await response.json();
+            
+            // Check if user owns this docpack
+            if ($page.data.user) {
+                const docpackResponse = await fetch(`/api/docpacks/${docpackId}`);
+                if (docpackResponse.ok) {
+                    const docpackData = await docpackResponse.json();
+                    isOwner = docpackData.jobs?.user_id === $page.data.user.id;
+                    if (isOwner) {
+                        await loadEdits();
+                    }
+                }
+            }
         } catch (err) {
             error = err instanceof Error ? err.message : "Failed to load docpack";
         } finally {
@@ -74,9 +196,49 @@
     });
 
     function selectSymbol(symbol: DocpackSymbol) {
-        selectedSymbol = symbol;
-        selectedDoc = content?.docs[symbol.doc_id] || null;
+        const mergedSymbol = getMergedSymbol(symbol);
+        const originalDoc = content?.docs[symbol.doc_id] || null;
+        
+        selectedSymbol = mergedSymbol;
+        selectedDoc = originalDoc ? getMergedDoc(originalDoc, symbol.id) : null;
         showMobileDoc = true;
+        editMode = false;
+    }
+
+    function toggleEditMode() {
+        editMode = !editMode;
+    }
+
+    async function exportWithEdits() {
+        if (!hasAnyEdits) return;
+        
+        exporting = true;
+        try {
+            const response = await fetch(`/api/docpacks/${docpackId}/export`, {
+                method: "POST",
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to export docpack");
+            }
+
+            const result = await response.json();
+            
+            // Trigger download
+            const link = document.createElement("a");
+            link.href = result.download_url;
+            link.download = `${content?.manifest.project.name}-edited.docpack`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`Successfully exported docpack with ${result.edits_applied} edits applied!`);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Failed to export docpack");
+        } finally {
+            exporting = false;
+        }
     }
 
     function clearSelection() {
@@ -116,8 +278,25 @@
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold text-text-primary">{content.manifest.project.name}</h1>
                     <span class="text-xs text-text-secondary/60">v{content.manifest.project.version}</span>
+                    {#if hasAnyEdits}
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-warning/20 text-warning">
+                            {Object.keys(edits).length} edit{Object.keys(edits).length !== 1 ? 's' : ''}
+                        </span>
+                    {/if}
                 </div>
                 <div class="flex items-center gap-4 text-xs text-text-secondary/60">
+                    {#if isOwner && hasAnyEdits}
+                        <button
+                            onclick={exportWithEdits}
+                            disabled={exporting}
+                            class="px-3 py-1.5 bg-warning text-bg-primary hover:bg-warning/90 rounded-sm transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            {exporting ? "Exporting..." : "Export Edited"}
+                        </button>
+                    {/if}
                     <span>{formatDate(content.manifest.generated_at)}</span>
                     <span class="hidden sm:inline">{content.manifest.stats.symbols_extracted} symbols</span>
                     {#if content.manifest.project.repo}
@@ -194,39 +373,67 @@
 
             <!-- Documentation panel -->
             <div class="flex-1 lg:w-1/2 flex flex-col min-h-0 {!showMobileDoc && !selectedSymbol ? 'hidden lg:flex' : ''} {showMobileDoc ? '' : 'hidden lg:flex'}">
-                <div class="shrink-0 bg-warning/10 border-b border-border-default px-4 py-2 flex justify-between items-center">
-                    <h2 class="text-sm font-semibold text-warning">Documentation</h2>
-                    {#if selectedSymbol}
-                        <button
-                            onclick={clearSelection}
-                            class="text-xs text-text-secondary/60 hover:text-text-secondary flex items-center gap-1"
-                        >
-                            <svg class="w-3 h-3 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                            <span class="hidden lg:inline">Hide</span>
-                            <span class="lg:hidden">Back</span>
-                        </button>
-                    {/if}
-                </div>
-                <div class="flex-1 overflow-y-auto p-4">
-                    {#if selectedSymbol && selectedDoc}
-                        <div class="space-y-4">
-                            <!-- Symbol header -->
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <h3 class="text-lg font-semibold text-warning">{getSymbolName(selectedSymbol.id)}</h3>
-                                    <span class="px-2 py-0.5 rounded text-xs bg-text-secondary/10 text-text-secondary/70">
-                                        {selectedSymbol.kind}
-                                    </span>
+                {#if editMode && selectedSymbol && selectedDoc}
+                    <SymbolEditor
+                        symbol={selectedSymbol}
+                        doc={selectedDoc}
+                        onSave={saveEdit}
+                        onCancel={toggleEditMode}
+                        onRevert={revertEdit}
+                        hasEdits={!!edits[selectedSymbol.id]}
+                    />
+                {:else}
+                    <div class="shrink-0 bg-warning/10 border-b border-border-default px-4 py-2 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-semibold text-warning">Documentation</h2>
+                            {#if selectedSymbol && edits[selectedSymbol.id]}
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-warning/20 text-warning">Edited</span>
+                            {/if}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {#if selectedSymbol && isOwner}
+                                <button
+                                    onclick={toggleEditMode}
+                                    class="px-2 py-1 text-xs bg-warning/10 text-warning hover:bg-warning/20 rounded-sm transition-colors flex items-center gap-1"
+                                >
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit
+                                </button>
+                            {/if}
+                            {#if selectedSymbol}
+                                <button
+                                    onclick={clearSelection}
+                                    class="text-xs text-text-secondary/60 hover:text-text-secondary flex items-center gap-1"
+                                >
+                                    <svg class="w-3 h-3 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span class="hidden lg:inline">Hide</span>
+                                    <span class="lg:hidden">Back</span>
+                                </button>
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4">
+                        {#if selectedSymbol && selectedDoc}
+                            <div class="space-y-4">
+                                <!-- Symbol header -->
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h3 class="text-lg font-semibold text-warning">{getSymbolName(selectedSymbol.id)}</h3>
+                                        <span class="px-2 py-0.5 rounded text-xs bg-text-secondary/10 text-text-secondary/70">
+                                            {selectedSymbol.kind}
+                                        </span>
+                                    </div>
+                                    <div class="bg-bg-primary border border-border-default rounded-sm p-3 mb-2">
+                                        <pre class="text-xs text-text-secondary overflow-x-auto whitespace-pre-wrap">{selectedSymbol.signature}</pre>
+                                    </div>
+                                    <div class="text-xs text-text-secondary/50 font-mono">
+                                        {cleanFilePath(selectedSymbol.file)}:{selectedSymbol.line}
+                                    </div>
                                 </div>
-                                <div class="bg-bg-primary border border-border-default rounded-sm p-3 mb-2">
-                                    <pre class="text-xs text-text-secondary overflow-x-auto whitespace-pre-wrap">{selectedSymbol.signature}</pre>
-                                </div>
-                                <div class="text-xs text-text-secondary/50 font-mono">
-                                    {cleanFilePath(selectedSymbol.file)}:{selectedSymbol.line}
-                                </div>
-                            </div>
 
                             <!-- Summary -->
                             <div>
@@ -275,24 +482,25 @@
                                 </div>
                             {/if}
 
-                            <!-- Notes -->
-                            {#if selectedDoc.notes && selectedDoc.notes.length > 0}
-                                <div>
-                                    <h4 class="text-sm font-semibold text-text-secondary mb-2">Notes</h4>
-                                    <ul class="list-disc list-inside space-y-1">
-                                        {#each selectedDoc.notes as note}
-                                            <li class="text-sm text-text-secondary/80">{note}</li>
-                                        {/each}
-                                    </ul>
-                                </div>
-                            {/if}
-                        </div>
-                    {:else}
-                        <div class="h-full flex items-center justify-center text-text-secondary/40 text-sm">
-                            Select a symbol to view its documentation
-                        </div>
-                    {/if}
-                </div>
+                                <!-- Notes -->
+                                {#if selectedDoc.notes && selectedDoc.notes.length > 0}
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-text-secondary mb-2">Notes</h4>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            {#each selectedDoc.notes as note}
+                                                <li class="text-sm text-text-secondary/80">{note}</li>
+                                            {/each}
+                                        </ul>
+                                    </div>
+                                {/if}
+                            </div>
+                        {:else}
+                            <div class="h-full flex items-center justify-center text-text-secondary/40 text-sm">
+                                Select a symbol to view its documentation
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
     {/if}

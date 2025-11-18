@@ -104,3 +104,21 @@ export interface DocpackContent {
   symbols: DocpackSymbol[];
   docs: Record<string, DocpackDocumentation>;
 }
+
+// Symbol edit interface - stores user modifications
+export interface SymbolEdit {
+  id: string;
+  docpack_id: string;
+  user_id: string;
+  symbol_id: string;
+  signature?: string;
+  kind?: string;
+  summary?: string;
+  description?: string;
+  parameters?: DocpackParameter[];
+  returns?: string;
+  example?: string;
+  notes?: string[];
+  created_at: string;
+  updated_at: string;
+}

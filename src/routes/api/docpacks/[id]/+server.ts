@@ -34,20 +34,26 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 
     // Parse request body
     const body = await request.json();
-    const { public: isPublic } = body;
+    const { public: isPublic, description } = body;
 
-    if (typeof isPublic !== "boolean") {
-      return json(
-        { error: "Invalid request: 'public' field must be a boolean" },
-        { status: 400 },
-      );
+    // Build update object with only provided fields
+    const updates: any = {};
+    if (typeof isPublic === "boolean") {
+      updates.public = isPublic;
+    }
+    if (description !== undefined) {
+      updates.description = description;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return json({ error: "No valid fields to update" }, { status: 400 });
     }
 
     // Update the docpack
     const { data: updatedDocpack, error: updateError } = await (
       supabase.from("docpacks") as any
     )
-      .update({ public: isPublic })
+      .update(updates)
       .eq("id", docpackId)
       .select()
       .single();

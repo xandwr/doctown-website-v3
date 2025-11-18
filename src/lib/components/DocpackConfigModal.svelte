@@ -22,6 +22,9 @@
     let canPublish = $derived(docpack?.status === "valid");
     let isPublic = $derived(docpack?.status === "public");
     let showDeleteConfirm = $state(false);
+    let isEditingDescription = $state(false);
+    let editedDescription = $state("");
+    let isSavingDescription = $state(false);
 
     // Prevent body scroll when modal is open
     $effect(() => {
@@ -74,6 +77,53 @@
 
     function handleDeleteCancel() {
         showDeleteConfirm = false;
+    }
+
+    function startEditingDescription(event: MouseEvent) {
+        event.stopPropagation();
+        editedDescription = docpack?.description || "";
+        isEditingDescription = true;
+    }
+
+    function cancelEditingDescription(event: MouseEvent) {
+        event.stopPropagation();
+        isEditingDescription = false;
+        editedDescription = docpack?.description || "";
+    }
+
+    async function saveDescription(event: MouseEvent) {
+        event.stopPropagation();
+        if (!docpack) return;
+        
+        isSavingDescription = true;
+
+        try {
+            const response = await fetch(`/api/docpacks/${docpack.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    description: editedDescription || null,
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (docpack) {
+                    docpack.description = result.docpack.description;
+                }
+                isEditingDescription = false;
+            } else {
+                console.error("Failed to update description");
+                alert("Failed to update description. Please try again.");
+            }
+        } catch (err) {
+            console.error("Error updating description:", err);
+            alert("Error updating description. Please try again.");
+        } finally {
+            isSavingDescription = false;
+        }
     }
 
     const statusConfig = $derived(
@@ -192,14 +242,51 @@
                     {/if}
                 </div>
 
-                <!-- Description (if exists) -->
-                {#if docpack.description}
-                    <div class="border-t border-border-strong pt-4">
-                        <p class="text-sm text-text-secondary leading-relaxed">
-                            {docpack.description}
-                        </p>
+                <!-- Description -->
+                <div class="border-t border-border-strong pt-4">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-text-tertiary text-xs font-mono">Description</span>
+                        {#if !isEditingDescription}
+                            <button
+                                onclick={startEditingDescription}
+                                class="text-xs text-primary hover:text-primary/80 font-mono transition-colors"
+                                title="Edit description"
+                            >
+                                Edit
+                            </button>
+                        {/if}
                     </div>
-                {/if}
+                    {#if isEditingDescription}
+                        <div onclick={(e) => e.stopPropagation()}>
+                            <textarea
+                                bind:value={editedDescription}
+                                class="w-full text-sm bg-bg-primary border border-border-default rounded-sm p-2 text-text-primary focus:outline-none focus:border-primary resize-none"
+                                rows="4"
+                                placeholder="Enter a description for this docpack..."
+                            ></textarea>
+                            <div class="flex gap-2 mt-2">
+                                <button
+                                    onclick={saveDescription}
+                                    disabled={isSavingDescription}
+                                    class="px-3 py-1.5 text-xs font-mono bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSavingDescription ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                    onclick={cancelEditingDescription}
+                                    disabled={isSavingDescription}
+                                    class="px-3 py-1.5 text-xs font-mono bg-bg-primary hover:bg-hover-bg text-text-secondary border border-border-default rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    {:else}
+                        <p class="text-sm text-text-secondary leading-relaxed">
+                            {docpack.description || "No description provided"}
+                        </p>
+                    {/if}
+                </div>
 
                 <!-- Technical Details (compact) -->
                 <div class="border-t border-border-strong pt-4 space-y-2 font-mono text-xs">

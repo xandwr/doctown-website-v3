@@ -70,12 +70,41 @@ export const POST: RequestHandler = async ({ request }) => {
     const fullName = repoMatch ? repoMatch[1] : job.repo;
     const name = fullName.split("/").pop() || "unknown";
 
+    // Fetch GitHub repo description
+    let description: string | null = null;
+    try {
+      // Get the user's access token from the job
+      const { data: user } = await supabase
+        .from("users")
+        .select("access_token")
+        .eq("id", job.user_id)
+        .single();
+
+      if (user?.access_token) {
+        const repoApiUrl = `https://api.github.com/repos/${fullName}`;
+        const repoResponse = await fetch(repoApiUrl, {
+          headers: {
+            Authorization: `Bearer ${user.access_token}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        });
+
+        if (repoResponse.ok) {
+          const repoData = await repoResponse.json();
+          description = repoData.description || null;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch GitHub repo description:", error);
+      // Continue without description rather than failing
+    }
+
     // Create docpack entry in database
     const docpack = await createDocpack({
       job_id: jobId,
       name,
       full_name: fullName,
-      description: null,
+      description,
       file_url: fileUrl,
       public: false, // Default to private
       repo_url: job.repo,
