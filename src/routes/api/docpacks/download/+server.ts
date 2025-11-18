@@ -21,17 +21,36 @@ export const GET: RequestHandler = async ({ url }) => {
       );
     }
 
+    // Validate credentials
+    const accessKeyId = env.BUCKET_ACCESS_KEY_ID;
+    const secretAccessKey = env.BUCKET_SECRET_ACCESS_KEY;
+    const endpoint = env.BUCKET_S3_ENDPOINT;
+    const bucketName = env.BUCKET_NAME || "doctown-central";
+
+    if (!accessKeyId || !secretAccessKey || !endpoint) {
+      console.error("Missing S3 credentials:", {
+        hasAccessKey: !!accessKeyId,
+        hasSecretKey: !!secretAccessKey,
+        hasEndpoint: !!endpoint,
+      });
+      return new Response(
+        JSON.stringify({ error: "S3 credentials not configured" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Initialize S3 client for R2
     const s3Client = new S3Client({
       region: "auto",
-      endpoint: env.BUCKET_S3_ENDPOINT,
+      endpoint: endpoint,
       credentials: {
-        accessKeyId: env.BUCKET_ACCESS_KEY_ID || "",
-        secretAccessKey: env.BUCKET_SECRET_ACCESS_KEY || "",
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
       },
     });
-
-    const bucketName = env.BUCKET_NAME || "doctown-central";
 
     // Download the docpack file
     const getCommand = new GetObjectCommand({
@@ -67,7 +86,7 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     // Check if this path matches any public docpack
-    const isPublic = docpacks?.some((dp) => dp.file_url?.includes(path));
+    const isPublic = docpacks?.some((dp: any) => dp.file_url?.includes(path));
 
     if (!isPublic) {
       return new Response(
