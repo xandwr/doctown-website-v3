@@ -10,6 +10,29 @@
     const user = $derived($page.data.user);
     const hasActiveSubscription = $derived($page.data.hasActiveSubscription);
 
+    // Rank system: Admin > Pro > Free
+    const userRank = $derived.by(() => {
+        if (!user) return null; // Not logged in, no rank shown
+        // Check both login (GitHub API) and github_login (database)
+        const username = user.login || user.github_login;
+        if (username === "xandwr") return "Admin";
+        if (hasActiveSubscription) return "Pro";
+        return "Free";
+    });
+
+    const rankColor = $derived.by(() => {
+        switch (userRank) {
+            case "Admin":
+                return "text-danger";
+            case "Pro":
+                return "text-primary";
+            case "Free":
+                return "text-text-secondary";
+            default:
+                return "";
+        }
+    });
+
     function toggleDropdown(event: Event) {
         event.stopPropagation();
         showDropdown = !showDropdown;
@@ -107,6 +130,11 @@
                         alt={user.login}
                         class="w-8 h-8 rounded-full"
                     />
+                    {#if userRank}
+                        <span class="text-sm font-medium {rankColor}"
+                            >[{userRank}]</span
+                        >
+                    {/if}
                     <span>{user.name || user.login}</span>
                 </button>
 
@@ -234,7 +262,12 @@
                                 alt={user.login}
                                 class="w-6 h-6 rounded-full"
                             />
-                            <span>GitHub Profile</span>
+                            {#if userRank}
+                                <span class="text-sm font-medium {rankColor}"
+                                    >[{userRank}]</span
+                                >
+                            {/if}
+                            <span>{user.name || user.login}</span>
                         </a>
                         <button
                             onclick={handleLogout}
