@@ -19,6 +19,11 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(303, "/");
   }
 
+  // Check if user has active subscription
+  if (!locals.hasActiveSubscription) {
+    throw redirect(303, "/dashboard/subscribe");
+  }
+
   // Return user immediately and stream repos asynchronously
   return {
     user: locals.user,

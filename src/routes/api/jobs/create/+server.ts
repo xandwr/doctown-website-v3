@@ -9,6 +9,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Check if user has active subscription
+  if (!locals.hasActiveSubscription) {
+    return json({ error: "Active subscription required" }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const { repo, git_ref } = body;

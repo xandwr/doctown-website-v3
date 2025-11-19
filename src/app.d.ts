@@ -8,6 +8,7 @@ declare global {
     interface Locals {
       user?: User;
       accessToken?: string;
+      hasActiveSubscription?: boolean;
     }
     // interface PageData {}
     // interface PageState {}

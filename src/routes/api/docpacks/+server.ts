@@ -19,6 +19,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         return json({ error: "Unauthorized" }, { status: 401 });
       }
 
+      // Check if user has active subscription
+      if (!locals.hasActiveSubscription) {
+        return json({ error: "Active subscription required" }, { status: 403 });
+      }
+
       // Get completed docpacks
       const docpacks = await getUserDocpacks(locals.user.id);
 

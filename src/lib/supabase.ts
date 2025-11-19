@@ -26,6 +26,7 @@ export type Docpack = Database["public"]["Tables"]["docpacks"]["Row"];
 export type GithubInstallation =
   Database["public"]["Tables"]["github_installations"]["Row"];
 export type JobLog = Database["public"]["Tables"]["job_logs"]["Row"];
+export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
 
 // Database helper functions
 
@@ -410,4 +411,122 @@ export function subscribeToJobLogs(
     .subscribe();
 
   return channel;
+}
+
+/**
+ * Get user's subscription by user ID
+ */
+export async function getUserSubscription(
+  userId: string,
+): Promise<Subscription | null> {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null; // Not found
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Check if user has an active subscription
+ */
+export async function hasActiveSubscription(userId: string): Promise<boolean> {
+  const subscription = await getUserSubscription(userId);
+
+  if (!subscription) return false;
+
+  // Check if subscription is active or trialing
+  if (subscription.status !== "active" && subscription.status !== "trialing") {
+    return false;
+  }
+
+  // Check if subscription period is still valid
+  const now = new Date();
+  const periodEnd = new Date(subscription.current_period_end);
+
+  return periodEnd > now;
+}
+
+/**
+ * Create or update a subscription
+ */
+export async function upsertSubscription(data: {
+  user_id: string;
+  stripe_customer_id: string;
+  stripe_subscription_id: string;
+  status: "active" | "canceled" | "past_due" | "incomplete" | "trialing";
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end?: boolean;
+}) {
+  const { data: subscription, error } = await (
+    supabase.from("subscriptions") as any
+  )
+    .upsert(
+      {
+        user_id: data.user_id,
+        stripe_customer_id: data.stripe_customer_id,
+        stripe_subscription_id: data.stripe_subscription_id,
+        status: data.status,
+        current_period_start: data.current_period_start,
+        current_period_end: data.current_period_end,
+        cancel_at_period_end: data.cancel_at_period_end || false,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "user_id",
+        ignoreDuplicates: false,
+      },
+    )
+    .select()
+    .single();
+
+  if (error) throw error;
+  return subscription;
+}
+
+/**
+ * Get subscription by Stripe subscription ID
+ */
+export async function getSubscriptionByStripeId(
+  stripeSubscriptionId: string,
+): Promise<Subscription | null> {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("stripe_subscription_id", stripeSubscriptionId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null; // Not found
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Get subscription by Stripe customer ID
+ */
+export async function getSubscriptionByCustomerId(
+  stripeCustomerId: string,
+): Promise<Subscription | null> {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("stripe_customer_id", stripeCustomerId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null; // Not found
+    throw error;
+  }
+
+  return data;
 }

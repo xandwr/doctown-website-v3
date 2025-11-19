@@ -1,5 +1,5 @@
 import type { Handle } from "@sveltejs/kit";
-import { getSession } from "$lib/supabase";
+import { getSession, hasActiveSubscription } from "$lib/supabase";
 
 export const handle: Handle = async ({ event, resolve }) => {
   const sessionToken = event.cookies.get("session_id");
@@ -11,6 +11,11 @@ export const handle: Handle = async ({ event, resolve }) => {
         // Session is valid and not expired
         event.locals.user = session.users;
         event.locals.accessToken = session.users.access_token;
+
+        // Check subscription status
+        event.locals.hasActiveSubscription = await hasActiveSubscription(
+          session.users.id,
+        );
       } else {
         // Session expired or not found, clear cookie
         event.cookies.delete("session_id", { path: "/" });
