@@ -414,19 +414,24 @@
                 <div class="border-t border-border-strong pt-4 space-y-3">
                     <!-- Download (if available) -->
                     {#if docpack.file_url && (docpack.status === "valid" || docpack.status === "public")}
-                        <a
-                            href={docpack.file_url}
-                            download
-                            class="block w-full bg-action-primary/20 text-action-primary border border-action-primary/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-action-primary/30 transition-colors text-center"
-                        >
-                            Download
-                        </a>
-                        <a
-                            href="/docpacks/{docpack.id}"
-                            class="block w-full bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-success/20 transition-colors text-center"
-                        >
-                            View Docs
-                        </a>
+                        <div class="flex items-stretch gap-4 min-h-[100px]">
+                            <div class="flex-1 bg-neutral-800 rounded-xl" aria-hidden="true"></div>
+                            <div class="grid grid-cols-1 gap-2 shrink-0">
+                                <a
+                                    href={docpack.file_url}
+                                    download
+                                    class="inline-flex items-center justify-center bg-action-primary/20 text-action-primary border border-action-primary/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-action-primary/30 transition-colors text-center min-w-36"
+                                >
+                                    Download as .docpack
+                                </a>
+                                <a
+                                    href="/docpacks/{docpack.id}"
+                                    class="inline-flex items-center justify-center bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-success/20 transition-colors text-center min-w-36"
+                                >
+                                    View Docs
+                                </a>
+                            </div>
+                        </div>
                     {/if}
 
                     <!-- Pending State -->
