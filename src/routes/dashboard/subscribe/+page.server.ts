@@ -1,5 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
+import { STRIPE_PRICE_ID_DOCTOWN_PRO } from "$env/static/private";
 import { getUserSubscription } from "$lib/supabase";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -29,5 +30,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   return {
     user: locals.user,
     canceled,
+    priceId: STRIPE_PRICE_ID_DOCTOWN_PRO ?? null,
   };
 };

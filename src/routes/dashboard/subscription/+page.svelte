@@ -9,7 +9,7 @@
   const hasSubscription = $derived(!!subscription);
   const isActive = $derived(
     subscription &&
-      (subscription.status === "active" || subscription.status === "trialing")
+      (subscription.status === "active" || subscription.status === "trialing"),
   );
 
   function formatDate(dateString: string) {
@@ -122,7 +122,7 @@
             </h2>
             <span
               class="px-3 py-1 rounded-full text-sm font-semibold {getStatusBadgeClass(
-                subscription.status
+                subscription.status,
               )}"
             >
               {getStatusText(subscription.status)}
@@ -146,14 +146,17 @@
 
             {#if subscription.cancel_at_period_end}
               <div class="md:col-span-2">
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div
+                  class="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+                >
                   <p class="text-yellow-800 font-medium">
                     Your subscription will be canceled on {formatDate(
-                      subscription.current_period_end
+                      subscription.current_period_end,
                     )}
                   </p>
                   <p class="text-yellow-700 text-sm mt-1">
-                    You'll still have access until the end of your billing period.
+                    You'll still have access until the end of your billing
+                    period.
                   </p>
                 </div>
               </div>
@@ -169,7 +172,8 @@
               {loading ? "Loading..." : "Manage Subscription"}
             </button>
             <p class="text-sm text-gray-500 mt-3">
-              Update payment method, billing information, or cancel your subscription
+              Update payment method, billing information, or cancel your
+              subscription
             </p>
           </div>
         </div>
@@ -268,7 +272,8 @@
           No Active Subscription
         </h2>
         <p class="text-gray-600 mb-6">
-          Subscribe to Doctown Premium to generate documentation for your repositories
+          Subscribe to Doctown Premium to generate documentation for your
+          repositories
         </p>
         <a
           href="/dashboard/subscribe"
