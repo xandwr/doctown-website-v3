@@ -22,6 +22,7 @@ export interface Docpack {
   file_url: string | null;
   tracked_branch?: string;
   frozen?: boolean;
+  stargazers_count?: number;
 }
 
 // Branch information from GitHub API
