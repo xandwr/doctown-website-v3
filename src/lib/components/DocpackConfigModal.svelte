@@ -32,14 +32,14 @@
     // Prevent body scroll when modal is open
     $effect(() => {
         if (isVisible) {
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = "hidden";
         } else {
-            document.body.style.overflow = '';
+            document.body.style.overflow = "";
         }
 
         // Cleanup function to restore scroll on unmount
         return () => {
-            document.body.style.overflow = '';
+            document.body.style.overflow = "";
         };
     });
 
@@ -131,7 +131,7 @@
     async function saveDescription(event: MouseEvent) {
         event.stopPropagation();
         if (!docpack) return;
-        
+
         isSavingDescription = true;
 
         try {
@@ -191,15 +191,22 @@
             <div class="border-b border-border-strong px-5 py-4">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1 min-w-0">
-                        <h2 class="text-xl font-normal text-text-primary mb-0.5 truncate">
+                        <h2
+                            class="text-xl font-normal text-text-primary mb-0.5 truncate"
+                        >
                             {docpack.name}
                         </h2>
-                        <p class="text-text-tertiary text-xs font-mono truncate">
-                            {docpack.full_name.replace('/', ':')}
+                        <p
+                            class="text-text-tertiary text-xs font-mono truncate"
+                        >
+                            {docpack.full_name.replace("/", ":")}
                         </p>
                     </div>
                     <button
-                        onclick={(e) => { e.stopPropagation(); onClose(); }}
+                        onclick={(e) => {
+                            e.stopPropagation();
+                            onClose();
+                        }}
                         class="text-text-tertiary hover:text-text-primary transition-colors shrink"
                         aria-label="Close"
                     >
@@ -224,12 +231,18 @@
             <!-- Content -->
             <div class="p-5 space-y-4">
                 <!-- Status Bubbles -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-start gap-2">
                     <!-- Validity Status Bubble - Blue for valid, Red for invalid/failed -->
                     <div
-                        class="px-3 py-1.5 text-xs font-mono border rounded-sm {(docpack.status === 'valid' || docpack.status === 'public') ? 'text-status-valid border-status-valid/40' : 'text-status-invalid border-status-invalid/40'}"
+                        class="px-3 py-1.5 text-xs font-mono border rounded-sm {docpack.status ===
+                            'valid' || docpack.status === 'public'
+                            ? 'text-status-valid border-status-valid/40'
+                            : 'text-status-invalid border-status-invalid/40'}"
                     >
-                        {(docpack.status === "valid" || docpack.status === "public") ? "valid" : docpack.status}
+                        {docpack.status === "valid" ||
+                        docpack.status === "public"
+                            ? "valid"
+                            : docpack.status}
                     </div>
 
                     <!-- Privacy Status Bubble (only shown for valid/public docpacks) -->
@@ -246,15 +259,22 @@
                                         handlePublish();
                                     }
                                 }}
-                                class="px-3 py-1.5 text-xs font-mono border rounded-sm cursor-pointer transition-colors {docpack.status === 'public' ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10' : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
+                                class="px-3 py-1.5 text-xs font-mono border rounded-sm cursor-pointer transition-colors {docpack.status ===
+                                'public'
+                                    ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10'
+                                    : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
                                 role="button"
                                 tabindex="0"
                                 title="Click to toggle privacy"
                             >
-                                {docpack.status === "public" ? "public" : "private"}
+                                {docpack.status === "public"
+                                    ? "public"
+                                    : "private"}
                             </div>
                             <!-- Animated hint arrow with text -->
-                            <div class="privacy-hint-arrow flex items-center gap-1 text-text-tertiary">
+                            <div
+                                class="privacy-hint-arrow flex items-center gap-1 text-text-tertiary"
+                            >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     class="h-3 w-3"
@@ -269,7 +289,10 @@
                                         d="M10 19l-7-7m0 0l7-7m-7 7h18"
                                     />
                                 </svg>
-                                <span class="text-[10px] font-mono whitespace-nowrap">Click to change!</span>
+                                <span
+                                    class="text-[10px] font-mono whitespace-nowrap"
+                                    >Click to change!</span
+                                >
                             </div>
                         </div>
                     {/if}
@@ -279,13 +302,18 @@
                         <div class="ml-auto flex items-center gap-3">
                             <!-- Freeze Toggle Button with Label -->
                             <div class="flex flex-col items-center gap-1">
-                                <span class="text-[10px] text-text-tertiary font-mono">Frozen:</span>
                                 <button
                                     onclick={handleToggleFrozen}
                                     disabled={isTogglingFrozen}
-                                    class="w-8 h-8 flex items-center justify-center border rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed {docpack.frozen ? 'bg-primary/20 border-primary/50 frozen-effect' : 'bg-success/20 border-success/50 mutable-pulse'}"
-                                    aria-label={docpack.frozen ? "Unfreeze docpack" : "Freeze docpack"}
-                                    title={docpack.frozen ? "Frozen - click to allow updates" : "Mutable - click to freeze"}
+                                    class="w-8 h-8 flex items-center justify-center border rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed {docpack.frozen
+                                        ? 'bg-primary/20 border-primary/50 frozen-effect'
+                                        : 'bg-success/20 border-success/50 mutable-pulse'}"
+                                    aria-label={docpack.frozen
+                                        ? "Unfreeze docpack"
+                                        : "Freeze docpack"}
+                                    title={docpack.frozen
+                                        ? "Frozen - click to allow updates"
+                                        : "Mutable - click to freeze"}
                                 >
                                     {#if docpack.frozen}
                                         <span class="text-sm">🔒</span>
@@ -293,11 +321,14 @@
                                         <span class="text-sm">🔓</span>
                                     {/if}
                                 </button>
+                                <span
+                                    class="text-[10px] text-text-tertiary font-mono"
+                                    >LOCK</span
+                                >
                             </div>
 
                             <!-- Delete Button with Label -->
                             <div class="flex flex-col items-center gap-1">
-                                <span class="text-[10px] text-text-tertiary font-mono">Delete:</span>
                                 <button
                                     onclick={handleDeleteClick}
                                     class="w-8 h-8 flex items-center justify-center bg-action-danger border border-action-danger rounded-sm hover:bg-action-danger/80 transition-colors"
@@ -319,15 +350,21 @@
                                         />
                                     </svg>
                                 </button>
+                                <span
+                                    class="text-[10px] text-text-tertiary font-mono"
+                                    >DEL</span
+                                >
                             </div>
                         </div>
                     {/if}
                 </div>
 
                 <!-- Description -->
-                <div class="border-t border-border-strong pt-4">
+                <div class="bg-black/15 px-2 py-4 rounded-xl">
                     <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-text-tertiary text-xs font-mono">Description</span>
+                        <span class="text-text-tertiary text-xs font-mono"
+                            >Description</span
+                        >
                         {#if !isEditingDescription}
                             <button
                                 onclick={startEditingDescription}
@@ -371,32 +408,42 @@
                 </div>
 
                 <!-- Technical Details (compact) -->
-                <div class="border-t border-border-strong pt-4 space-y-2 font-mono text-xs">
-                    <div class="flex justify-between gap-4">
-                        <span class="text-text-tertiary">repo</span>
+                <div
+                    class="border-t border-border-strong pt-4 space-y-2 font-mono text-xs"
+                >
+                    <div
+                        class="flex justify-between gap-4 border-b border-action-primary"
+                    >
+                        <span class="text-primary">repo</span>
                         <a
                             href={docpack.repo_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             class="text-primary hover:underline truncate"
                         >
-                            {docpack.full_name.replace('/', ':')}
+                            {docpack.full_name.replace("/", ":")}
                         </a>
                     </div>
                     {#if docpack.tracked_branch}
-                        <div class="flex justify-between gap-4">
+                        <div
+                            class="flex justify-between gap-4 border-b text-text-tertiary"
+                        >
                             <span class="text-text-tertiary">branch</span>
-                            <span class="text-text-primary">{docpack.tracked_branch}</span>
+                            <span class="text-text-primary"
+                                >{docpack.tracked_branch}</span
+                            >
                         </div>
                     {/if}
                     {#if docpack.commit_hash}
-                        <div class="flex justify-between gap-4">
+                        <div
+                            class="flex justify-between gap-4 border-b text-text-tertiary"
+                        >
                             <span class="text-text-tertiary">commit</span>
                             <a
                                 href="{docpack.repo_url}/commit/{docpack.commit_hash}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-primary hover:underline"
+                                class="text-tertiary hover:underline"
                             >
                                 {docpack.commit_hash.substring(0, 8)}
                             </a>
@@ -405,7 +452,9 @@
                     {#if docpack.language}
                         <div class="flex justify-between gap-4">
                             <span class="text-text-tertiary">language</span>
-                            <span class="text-text-primary">{docpack.language}</span>
+                            <span class="text-text-primary"
+                                >{docpack.language}</span
+                            >
                         </div>
                     {/if}
                 </div>
@@ -415,20 +464,97 @@
                     <!-- Download (if available) -->
                     {#if docpack.file_url && (docpack.status === "valid" || docpack.status === "public")}
                         <div class="flex items-stretch gap-4 min-h-[100px]">
-                            <div class="flex-1 bg-neutral-800 rounded-xl" aria-hidden="true"></div>
-                            <div class="grid grid-cols-1 gap-2 shrink-0">
+                            <!-- Quick Stats & Install Guide -->
+                            <div
+                                class="flex-1 bg-bg-primary/33 border border-border-default rounded p-4 flex flex-col justify-between"
+                            >
+                                <!-- Stats at top -->
+                                <div class="space-y-2">
+                                    <div
+                                        class="flex items-center gap-2 text-text-tertiary text-[10px] font-mono uppercase tracking-wide"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-3 w-3"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                            />
+                                        </svg>
+                                        <span>Quick Info</span>
+                                    </div>
+                                    <div class="space-y-1 text-xs font-mono">
+                                        <div
+                                            class="flex items-center gap-2 text-text-secondary"
+                                        >
+                                            <span class="text-text-tertiary"
+                                                >Updated:</span
+                                            >
+                                            <span
+                                                >{new Date(
+                                                    docpack.updated_at,
+                                                ).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })}</span
+                                            >
+                                        </div>
+                                        {#if docpack.version}
+                                            <div
+                                                class="flex items-center gap-2 text-text-secondary"
+                                            >
+                                                <span class="text-text-tertiary"
+                                                    >Version:</span
+                                                >
+                                                <span>{docpack.version}</span>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </div>
+
+                                <!-- Install guide at bottom -->
+                                <div
+                                    class="mt-3 pt-3 border-t border-border-default"
+                                >
+                                    <div
+                                        class="text-[10px] font-mono text-text-tertiary uppercase tracking-wide mb-1.5"
+                                    >
+                                        Quick Start
+                                    </div>
+                                    <div
+                                        class="bg-void/20 rounded px-2 py-1.5 font-mono text-[11px] text-primary"
+                                    >
+                                        localdoc install {docpack.full_name.replace(
+                                            "/",
+                                            ":",
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action buttons -->
+                            <div
+                                class="grid grid-cols-1 gap-1 h-fit self-start"
+                            >
+                                <a
+                                    href="/docpacks/{docpack.id}"
+                                    class="inline-flex items-center justify-center bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-lighter hover:bg-success/20 transition-colors text-center min-w-36"
+                                >
+                                    <b class="mr-1">View</b> Documentation
+                                </a>
                                 <a
                                     href={docpack.file_url}
                                     download
-                                    class="inline-flex items-center justify-center bg-action-primary/20 text-action-primary border border-action-primary/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-action-primary/30 transition-colors text-center min-w-36"
+                                    class="inline-flex items-center justify-center bg-active-bg/20 text-shadow-active-bg border border-active-bg rounded-sm px-4 py-2 text-sm font-lighter hover:bg-active-bg/80 transition-colors text-center min-w-36"
                                 >
-                                    Download as .docpack
-                                </a>
-                                <a
-                                    href="/docpacks/{docpack.id}"
-                                    class="inline-flex items-center justify-center bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-medium hover:bg-success/20 transition-colors text-center min-w-36"
-                                >
-                                    View Docs
+                                    <b class="mr-1">Download</b> as .docpack
                                 </a>
                             </div>
                         </div>
@@ -469,20 +595,24 @@
         class="fixed inset-0 bg-void/90 backdrop-blur-sm z-60 flex items-center justify-center"
         onclick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
     >
-        <div class="bg-bg-elevated border border-action-danger rounded-md max-w-sm w-full mx-4 overflow-hidden">
+        <div
+            class="bg-bg-elevated border border-action-danger rounded-md max-w-sm w-full mx-4 overflow-hidden"
+        >
             <!-- Header -->
             <div class="border-b border-border-strong px-5 py-4">
-                <h3 class="text-lg font-normal text-action-danger">Delete Docpack?</h3>
+                <h3 class="text-lg font-normal text-action-danger">
+                    Delete Docpack?
+                </h3>
             </div>
 
             <!-- Content -->
             <div class="px-5 py-4">
                 <p class="text-sm text-text-secondary mb-2">
-                    Delete <span class="text-text-primary font-mono">{docpack.name}</span>?
+                    Delete <span class="text-text-primary font-mono"
+                        >{docpack.name}</span
+                    >?
                 </p>
-                <p class="text-xs text-text-tertiary">
-                    This cannot be undone.
-                </p>
+                <p class="text-xs text-text-tertiary">This cannot be undone.</p>
             </div>
 
             <!-- Footer -->
@@ -531,11 +661,16 @@
 
     /* Frozen effect - blue glow */
     @keyframes frozen-glow {
-        0%, 100% {
-            box-shadow: 0 0 4px rgba(59, 130, 246, 0.4), 0 0 8px rgba(59, 130, 246, 0.2);
+        0%,
+        100% {
+            box-shadow:
+                0 0 4px rgba(59, 130, 246, 0.4),
+                0 0 8px rgba(59, 130, 246, 0.2);
         }
         50% {
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 16px rgba(59, 130, 246, 0.3);
+            box-shadow:
+                0 0 8px rgba(59, 130, 246, 0.6),
+                0 0 16px rgba(59, 130, 246, 0.3);
         }
     }
 
@@ -545,11 +680,16 @@
 
     /* Mutable pulse - green pulse */
     @keyframes mutable-glow {
-        0%, 100% {
-            box-shadow: 0 0 4px rgba(16, 185, 129, 0.4), 0 0 8px rgba(16, 185, 129, 0.2);
+        0%,
+        100% {
+            box-shadow:
+                0 0 4px rgba(16, 185, 129, 0.4),
+                0 0 8px rgba(16, 185, 129, 0.2);
         }
         50% {
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6), 0 0 16px rgba(16, 185, 129, 0.3);
+            box-shadow:
+                0 0 8px rgba(16, 185, 129, 0.6),
+                0 0 16px rgba(16, 185, 129, 0.3);
         }
     }
 
@@ -559,7 +699,8 @@
 
     /* Privacy hint arrow animation */
     @keyframes hint-nudge {
-        0%, 100% {
+        0%,
+        100% {
             transform: translateX(0);
             opacity: 0.4;
         }

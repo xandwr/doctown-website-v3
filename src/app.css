@@ -1,87 +1,84 @@
 @import "tailwindcss";
 
 @theme {
-  /* === Base Neutrals === */
-  /* Clean, minimal backgrounds - developer tool aesthetic */
-  --color-bg-primary: #0a0a0a;
-  --color-bg-secondary: #121212;
-  --color-bg-tertiary: #1a1a1a;
-  --color-bg-elevated: #1e1e1e;
+  /* === Base Neutrals (Colder, more dimensional) === */
+  --color-bg-primary: #08090a; /* Deep carbon */
+  --color-bg-secondary: #111214; /* Slight blue tint -> modern, crisp */
+  --color-bg-tertiary: #181a1d;
+  --color-bg-elevated: #1e2023; /* Not warm; stays technical */
 
-  --color-border-subtle: #282828;
-  --color-border-default: #333333;
-  --color-border-strong: #404040;
+  --color-border-subtle: #26292c;
+  --color-border-default: #2f3336;
+  --color-border-strong: #3b4044;
 
-  /* === Text Hierarchy === */
-  --color-text-primary: #e8e8e8;
-  --color-text-secondary: #a8a8a8;
-  --color-text-tertiary: #707070;
-  --color-text-muted: #505050;
+  /* === Text (Boost contrast without glowing) === */
+  --color-text-primary: #e5e7eb; /* Slight steel-gray tint */
+  --color-text-secondary: #9ca3af;
+  --color-text-tertiary: #6b7280;
+  --color-text-muted: #4b5563;
 
-  /* === Semantic Status Colors === */
-  /* Vibrant, purposeful - clear meaning at a glance */
+  /* === Status Colors (Less “cute,” more “ops dashboard”) === */
 
-  /* Building/Pending - Amber */
-  --color-status-building: #fbbf24;
-  --color-status-building-bg: #fbbf24;
+  /* Building/Pending - Amber → Push to a saturated tech amber */
+  --color-status-building: #fcbf3e;
+  --color-status-building-bg: rgba(252, 191, 62, 0.1);
 
-  /* Valid/Ready - Cyan */
-  --color-status-valid: #06b6d4;
-  --color-status-valid-bg: #06b6d4;
+  /* Valid/Ready - Cyan → colder, more surgical */
+  --color-status-valid: #09d3e8;
+  --color-status-valid-bg: rgba(9, 211, 232, 0.1);
 
-  /* Public/Live - Green */
-  --color-status-public: #10b981;
-  --color-status-public-bg: #10b981;
+  /* Public/Live - Green → cooler, leaner */
+  --color-status-public: #22c38e;
+  --color-status-public-bg: rgba(34, 195, 142, 0.1);
 
-  /* Failed/Error - Red */
-  --color-status-failed: #ef4444;
-  --color-status-failed-bg: #ef4444;
+  /* Failed/Error - Red → slightly deeper, less ketchup */
+  --color-status-failed: #f15151;
+  --color-status-failed-bg: rgba(241, 81, 81, 0.12);
 
-  /* === Action Colors === */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  /* === Actions (More intentional, slightly neon edges) === */
+  --color-primary: #3d7eff; /* More electric */
+  --color-primary-hover: #2f64d4;
 
-  --color-success: #10b981;
-  --color-success-hover: #059669;
+  --color-success: #22c38e;
+  --color-success-hover: #1ba376;
 
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
+  --color-danger: #e03e3e;
+  --color-danger-hover: #c83232;
 
-  --color-warning: #f59e0b;
-  --color-warning-hover: #d97706;
+  --color-warning: #e7a32b;
+  --color-warning-hover: #c58922;
 
-  /* === Language Colors === */
-  /* Vibrant, recognizable colors for each language */
-  --color-lang-rust: #ce422b;
-  --color-lang-python: #3776ab;
-  --color-lang-javascript: #f7df1e;
-  --color-lang-typescript: #3178c6;
-  --color-lang-go: #00add8;
-  --color-lang-java: #f89820;
-  --color-lang-cpp: #00599c;
-  --color-lang-ruby: #cc342d;
-  --color-lang-csharp: #239120;
-  --color-lang-php: #777bb4;
-  --color-lang-swift: #f05138;
-  --color-lang-scala: #dc322f;
-  --color-lang-shell: #89e051;
+  /* === Language Colors (Keep, but darken slightly for contrast pop) === */
+  --color-lang-rust: #d04b35;
+  --color-lang-python: #3a7bc0;
+  --color-lang-javascript: #ffdf38;
+  --color-lang-typescript: #3b82de;
+  --color-lang-go: #12bce8;
+  --color-lang-java: #ff9900;
+  --color-lang-cpp: #1976d2;
+  --color-lang-ruby: #e23b3b;
+  --color-lang-csharp: #2fbf34;
+  --color-lang-php: #8a89c8;
+  --color-lang-swift: #ff5530;
+  --color-lang-scala: #e53935;
+  --color-lang-shell: #9ef57e;
 
-  /* === Interactive States === */
-  --color-hover-bg: #252525;
-  --color-active-bg: #2a2a2a;
-  --color-focus-ring: #3b82f6;
+  /* === Interaction === */
+  --color-hover-bg: #232528; /* Slight blue tint for depth */
+  --color-active-bg: #292c2f;
+  --color-focus-ring: #3d7eff;
 
-  /* === Action Variants === */
-  --color-action-danger: #ef4444;
-  --color-action-primary: #3b82f6;
-  --color-action-cancel: #f59e0b;
+  /* === Action Variants (same palette as above) === */
+  --color-action-danger: #e03e3e;
+  --color-action-primary: #3d7eff;
+  --color-action-cancel: #e7a32b;
 
-  /* === Privacy States === */
-  --color-privacy-public: #10b981;
-  --color-privacy-private: #8b5cf6;
+  /* === Privacy === */
+  --color-privacy-public: #22c38e;
+  --color-privacy-private: #8b5cf6; /* Purple stays — identity color */
 
-  /* === Additional Status === */
-  --color-status-invalid: #ef4444;
+  /* === Additional === */
+  --color-status-invalid: #e03e3e;
 
   /* === Overlay === */
   --color-void: #000000;

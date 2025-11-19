@@ -3,6 +3,7 @@
     import { page } from "$app/stores";
     import type { DocpackContent, DocpackSymbol, DocpackDocumentation, SymbolEdit } from "$lib/types";
     import SymbolEditor from "$lib/components/SymbolEditor.svelte";
+    import CodeBlock from "$lib/components/CodeBlock.svelte";
 
     let loading = $state(true);
     let error = $state<string | null>(null);
@@ -18,6 +19,8 @@
     let isOwner = $state(false);
     let exporting = $state(false);
     let focusField = $state<string | undefined>(undefined);
+    let repoUrl = $state<string | null>(null);
+    let commitHash = $state<string | null>(null);
 
     const docpackId = $derived($page.params.id);
     const hasAnyEdits = $derived(Object.keys(edits).length > 0);
@@ -31,8 +34,55 @@
 
     // Clean up file path for display
     function cleanFilePath(file: string): string {
-        // Remove hash prefixes like "xandwr-localdoc-6ed9078/"
-        return file.replace(/^[a-z]+-[a-z]+-[a-f0-9]+\//, '');
+        // Remove hash prefixes like "xandwr-doctown-builder-6292c22/"
+        // Pattern matches: word-word-...-hexhash/
+        return file.replace(/^[\w-]+-[a-f0-9]+\//, '');
+    }
+
+    // Generate GitHub blob URL for a symbol
+    function getGitHubUrl(symbol: DocpackSymbol): string | null {
+        if (!repoUrl || !commitHash) {
+            return null;
+        }
+        const filePath = cleanFilePath(symbol.file);
+        
+        // Handle different GitHub URL formats
+        let baseUrl = repoUrl;
+        if (baseUrl.endsWith('.git')) {
+            baseUrl = baseUrl.slice(0, -4);
+        }
+        if (!baseUrl.startsWith('http')) {
+            return null;
+        }
+        
+        return `${baseUrl}/blob/${commitHash}/${filePath}#L${symbol.line}`;
+    }
+
+    // Detect language from file extension
+    function getLanguageFromFile(file: string): string {
+        const ext = file.split('.').pop()?.toLowerCase() || '';
+        const langMap: Record<string, string> = {
+            'rs': 'rust',
+            'ts': 'typescript',
+            'tsx': 'typescript',
+            'js': 'javascript',
+            'jsx': 'javascript',
+            'py': 'python',
+            'go': 'go',
+            'c': 'c',
+            'cpp': 'cpp',
+            'cc': 'cpp',
+            'h': 'c',
+            'hpp': 'cpp',
+            'java': 'java',
+            'rb': 'ruby',
+            'sh': 'bash',
+            'yaml': 'yaml',
+            'yml': 'yaml',
+            'toml': 'toml',
+            'json': 'json',
+        };
+        return langMap[ext] || 'typescript';
     }
 
     // Filter symbols based on search and kind
@@ -178,15 +228,25 @@
             }
             content = await response.json();
             
-            // Check if user owns this docpack
+            // Check if user owns this docpack and get repo info
             if ($page.data.user) {
                 const docpackResponse = await fetch(`/api/docpacks/${docpackId}`);
                 if (docpackResponse.ok) {
                     const docpackData = await docpackResponse.json();
                     isOwner = docpackData.jobs?.user_id === $page.data.user.id;
+                    repoUrl = docpackData.repo_url;
+                    commitHash = docpackData.commit_hash;
                     if (isOwner) {
                         await loadEdits();
                     }
+                }
+            } else {
+                // Get repo info even for non-authenticated users
+                const docpackResponse = await fetch(`/api/docpacks/${docpackId}`);
+                if (docpackResponse.ok) {
+                    const docpackData = await docpackResponse.json();
+                    repoUrl = docpackData.repo_url;
+                    commitHash = docpackData.commit_hash;
                 }
             }
         } catch (err) {
@@ -366,7 +426,19 @@
                                         </span>
                                     </div>
                                     <div class="text-xs text-text-secondary/50 mt-1 font-mono truncate">
-                                        {cleanFilePath(symbol.file)}:{symbol.line}
+                                        {#if getGitHubUrl(symbol)}
+                                            <a
+                                                href={getGitHubUrl(symbol)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="hover:text-warning hover:underline"
+                                                onclick={(e) => e.stopPropagation()}
+                                            >
+                                                {cleanFilePath(symbol.file)}:{symbol.line}
+                                            </a>
+                                        {:else}
+                                            {cleanFilePath(symbol.file)}:{symbol.line}
+                                        {/if}
                                     </div>
                                 </div>
                                 <svg class="w-4 h-4 text-text-secondary/30 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,10 +513,24 @@
                                         </span>
                                     </div>
                                     <div class="bg-bg-primary border border-border-default rounded-sm p-3 mb-2">
-                                        <pre class="text-xs text-text-secondary overflow-x-auto whitespace-pre-wrap">{selectedSymbol.signature}</pre>
+                                        <CodeBlock code={selectedSymbol.signature} language={getLanguageFromFile(selectedSymbol.file)} />
                                     </div>
                                     <div class="text-xs text-text-secondary/50 font-mono">
-                                        {cleanFilePath(selectedSymbol.file)}:{selectedSymbol.line}
+                                        {#if getGitHubUrl(selectedSymbol)}
+                                            <a
+                                                href={getGitHubUrl(selectedSymbol)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="hover:text-warning hover:underline inline-flex items-center gap-1"
+                                            >
+                                                {cleanFilePath(selectedSymbol.file)}:{selectedSymbol.line}
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+                                        {:else}
+                                            {cleanFilePath(selectedSymbol.file)}:{selectedSymbol.line}
+                                        {/if}
                                     </div>
                                 </div>
 
@@ -555,7 +641,7 @@
                                         {/if}
                                     </div>
                                     <div class="bg-bg-primary border border-border-default rounded-sm p-3">
-                                        <pre class="text-xs text-text-secondary overflow-x-auto whitespace-pre-wrap">{selectedDoc.example}</pre>
+                                        <CodeBlock code={selectedDoc.example} language={getLanguageFromFile(selectedSymbol.file)} />
                                     </div>
                                 </div>
                             {/if}
@@ -579,7 +665,7 @@
                                         </div>
                                         <ul class="list-disc list-inside space-y-1">
                                             {#each selectedDoc.notes as note}
-                                                <li class="text-sm text-text-secondary/80">{note}</li>
+                                                <li class="text-sm text-text-secondary/80 italic">{note}</li>
                                             {/each}
                                         </ul>
                                     </div>
