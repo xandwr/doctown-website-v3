@@ -207,24 +207,6 @@
                 />
               </svg>
             </div>
-            <p class="ml-3 text-sm text-text-secondary">Priority build queue</p>
-          </li>
-          <li class="flex items-start">
-            <div class="flex-shrink-0">
-              <svg
-                class="h-5 w-5 text-success"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
             <p class="ml-3 text-sm text-text-secondary">Cancel anytime</p>
           </li>
         </ul>

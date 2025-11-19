@@ -8,6 +8,7 @@
     let mobileMenuDropdownRef = $state<HTMLDivElement>();
 
     const user = $derived($page.data.user);
+    const hasActiveSubscription = $derived($page.data.hasActiveSubscription);
 
     function toggleDropdown(event: Event) {
         event.stopPropagation();
@@ -34,6 +35,12 @@
         ) {
             showMobileMenu = false;
         }
+    }
+
+    function getDashboardUrl() {
+        if (!user) return "/auth/login";
+        if (!hasActiveSubscription) return "/dashboard/subscribe";
+        return "/dashboard";
     }
 
     async function handleLogout() {
@@ -68,16 +75,14 @@
                 >
                     Commons
                 </a>
-                {#if user}
-                    <a
-                        href="/dashboard"
-                        class="hover:text-text-primary transition-colors"
-                        class:text-primary={$page.url.pathname ===
-                            "/dashboard"}
-                    >
-                        Dashboard
-                    </a>
-                {/if}
+                <a
+                    href={getDashboardUrl()}
+                    class="transition-colors hover:text-text-primary"
+                    class:text-primary={$page.url.pathname === "/dashboard"}
+                    class:opacity-50={!user || !hasActiveSubscription}
+                >
+                    Dashboard
+                </a>
             </nav>
         </div>
     </div>
@@ -102,6 +107,14 @@
                     <div
                         class="absolute right-0 mt-2 w-48 bg-bg-elevated border border-border-strong rounded-sm overflow-hidden z-50"
                     >
+                        {#if hasActiveSubscription}
+                            <a
+                                href="/dashboard/subscription"
+                                class="block px-4 py-2 hover:bg-border-strong transition-colors text-text-primary"
+                            >
+                                My Account
+                            </a>
+                        {/if}
                         <a
                             href={user.html_url}
                             target="_blank"
@@ -176,16 +189,25 @@
                     >
                         Commons
                     </a>
+                    <a
+                        href={getDashboardUrl()}
+                        class="px-4 py-3 transition-colors border-b border-border-strong hover:bg-border-strong"
+                        class:text-primary={$page.url.pathname === "/dashboard"}
+                        class:opacity-50={!user || !hasActiveSubscription}
+                        onclick={() => (showMobileMenu = false)}
+                    >
+                        Dashboard
+                    </a>
                     {#if user}
-                        <a
-                            href="/dashboard"
-                            class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
-                            class:text-primary={$page.url.pathname ===
-                                "/dashboard"}
-                            onclick={() => (showMobileMenu = false)}
-                        >
-                            Dashboard
-                        </a>
+                        {#if hasActiveSubscription}
+                            <a
+                                href="/dashboard/subscription"
+                                class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
+                                onclick={() => (showMobileMenu = false)}
+                            >
+                                My Account
+                            </a>
+                        {/if}
                         <a
                             href={user.html_url}
                             target="_blank"

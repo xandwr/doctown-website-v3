@@ -233,22 +233,6 @@
             </svg>
             <span class="text-sm text-text-secondary">Automatic updates for tracked branches</span>
           </li>
-          <li class="flex items-start">
-            <svg
-              class="h-5 w-5 text-success mr-3 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            <span class="text-sm text-text-secondary">Priority build queue</span>
-          </li>
         </ul>
       </div>
     {:else}
