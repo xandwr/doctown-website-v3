@@ -18,6 +18,8 @@
     let searchQuery = $state("");
     let filterKind = $state<string>("all");
     let showMobileDoc = $state(false);
+    let showKindFilter = $state(false);
+    let selectedKinds = $state<Set<string>>(new Set());
     let editMode = $state(false);
     let edits = $state<Record<string, SymbolEdit>>({});
     let loadingEdits = $state(false);
@@ -42,6 +44,25 @@
         // Remove hash prefixes like "xandwr-doctown-builder-6292c22/"
         // Pattern matches: word-word-...-hexhash/
         return file.replace(/^[\w-]+-[a-f0-9]+\//, '');
+    }
+
+    // Get color for symbol kind
+    function getKindColor(kind: string): { bg: string; text: string; border: string } {
+        const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+            'function': { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
+            'method': { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
+            'class': { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30' },
+            'struct': { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30' },
+            'enum': { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
+            'interface': { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+            'type': { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/30' },
+            'constant': { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
+            'variable': { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/30' },
+            'property': { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+            'module': { bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/30' },
+            'trait': { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/30' },
+        };
+        return colorMap[kind.toLowerCase()] || { bg: 'bg-text-secondary/10', text: 'text-text-secondary/70', border: 'border-text-secondary/30' };
     }
 
     // Generate GitHub blob URL for a symbol
@@ -116,9 +137,9 @@
         if (!content) return [];
         let symbols = content.symbols;
 
-        // Filter by kind
-        if (filterKind !== "all") {
-            symbols = symbols.filter(s => s.kind === filterKind);
+        // Filter by selected kinds (if any are selected)
+        if (selectedKinds.size > 0) {
+            symbols = symbols.filter(s => selectedKinds.has(s.kind));
         }
 
         // Filter by search query
@@ -135,12 +156,31 @@
         return symbols;
     });
 
-    // Get unique symbol kinds for filtering
+    // Get unique symbol kinds for filtering with counts
     const symbolKinds = $derived(() => {
         if (!content) return [];
-        const kinds = new Set(content.symbols.map(s => s.kind));
-        return Array.from(kinds).sort();
+        const kindCounts = new Map<string, number>();
+        content.symbols.forEach(s => {
+            kindCounts.set(s.kind, (kindCounts.get(s.kind) || 0) + 1);
+        });
+        return Array.from(kindCounts.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([kind, count]) => ({ kind, count }));
     });
+
+    function toggleKind(kind: string) {
+        const newSet = new Set(selectedKinds);
+        if (newSet.has(kind)) {
+            newSet.delete(kind);
+        } else {
+            newSet.add(kind);
+        }
+        selectedKinds = newSet;
+    }
+
+    function clearKindFilters() {
+        selectedKinds = new Set();
+    }
 
     // Merge edits with original symbol and doc data
     const getMergedSymbol = (symbol: DocpackSymbol): DocpackSymbol => {
@@ -280,6 +320,18 @@
         } finally {
             loading = false;
         }
+    });
+
+    // Close filter dropdown when clicking outside
+    $effect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (showKindFilter && !target.closest('.filter-dropdown-container')) {
+                showKindFilter = false;
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
     });
 
     function selectSymbol(symbol: DocpackSymbol) {
@@ -433,9 +485,57 @@
             <!-- Symbols list -->
             <div class="flex-1 lg:w-1/2 flex flex-col min-h-0 border-r border-border-default {showMobileDoc ? 'hidden lg:flex' : ''}">
                 <div class="shrink-0 bg-warning/10 border-b border-border-default px-4 py-2">
-                    <h2 class="text-sm font-semibold text-warning">
-                        Symbols ({filteredSymbols().length})
-                    </h2>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-semibold text-warning">
+                            Symbols ({filteredSymbols().length})
+                        </h2>
+                        <div class="relative filter-dropdown-container">
+                            <button
+                                onclick={() => showKindFilter = !showKindFilter}
+                                class="flex items-center gap-1.5 px-2 py-1 text-xs text-text-secondary hover:text-warning transition-colors rounded-sm hover:bg-warning/10 {selectedKinds.size > 0 ? 'bg-warning/20 text-warning' : ''}"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                {#if selectedKinds.size > 0}
+                                    <span class="font-semibold">{selectedKinds.size}</span>
+                                {/if}
+                            </button>
+                            
+                            {#if showKindFilter}
+                                <div class="absolute right-0 top-full mt-1 bg-bg-primary border border-border-default rounded-sm shadow-lg z-10 min-w-[200px] filter-dropdown-container">
+                                    <div class="px-3 py-2 border-b border-border-default flex items-center justify-between">
+                                        <span class="text-xs font-semibold text-text-secondary">Filter by Type</span>
+                                        {#if selectedKinds.size > 0}
+                                            <button
+                                                onclick={clearKindFilters}
+                                                class="text-[10px] text-warning hover:underline"
+                                            >
+                                                Clear
+                                            </button>
+                                        {/if}
+                                    </div>
+                                    <div class="max-h-[300px] overflow-y-auto">
+                                        {#each symbolKinds() as { kind, count }}
+                                            <label class="flex items-center gap-2 px-3 py-2 hover:bg-warning/5 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedKinds.has(kind)}
+                                                    onchange={() => toggleKind(kind)}
+                                                    class="w-3.5 h-3.5 rounded border-border-default text-warning focus:ring-warning focus:ring-offset-0"
+                                                />
+                                                <span class="flex items-center gap-2 flex-1">
+                                                    <span class="w-2 h-2 rounded-full {getKindColor(kind).bg} border {getKindColor(kind).border}"></span>
+                                                    <span class="text-xs {getKindColor(kind).text}">{kind}</span>
+                                                </span>
+                                                <span class="text-[10px] text-text-secondary/50 font-mono">{count}</span>
+                                            </label>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto">
                     {#each filteredSymbols() as symbol}
@@ -446,7 +546,7 @@
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-text-secondary/10 text-text-secondary/70">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] {getKindColor(symbol.kind).bg} {getKindColor(symbol.kind).text} border {getKindColor(symbol.kind).border}">
                                             {symbol.kind}
                                         </span>
                                     </div>
@@ -540,7 +640,7 @@
                                 <div>
                                     <div class="flex items-center gap-2 mb-2">
                                         <h3 class="text-lg font-semibold text-warning">{getSymbolName(selectedSymbol.id)}</h3>
-                                        <span class="px-2 py-0.5 rounded text-xs bg-text-secondary/10 text-text-secondary/70">
+                                        <span class="px-2 py-0.5 rounded text-xs {getKindColor(selectedSymbol.kind).bg} {getKindColor(selectedSymbol.kind).text} border {getKindColor(selectedSymbol.kind).border}">
                                             {selectedSymbol.kind}
                                         </span>
                                     </div>
