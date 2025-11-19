@@ -4,6 +4,11 @@
     import type { DocpackContent, DocpackSymbol, DocpackDocumentation, SymbolEdit } from "$lib/types";
     import SymbolEditor from "$lib/components/SymbolEditor.svelte";
     import CodeBlock from "$lib/components/CodeBlock.svelte";
+    import Prism from "prismjs";
+    import "prismjs/components/prism-typescript";
+    import "prismjs/components/prism-javascript";
+    import "prismjs/components/prism-rust";
+    import "prismjs/components/prism-python";
 
     let loading = $state(true);
     let error = $state<string | null>(null);
@@ -56,6 +61,27 @@
         }
         
         return `${baseUrl}/blob/${commitHash}/${filePath}#L${symbol.line}`;
+    }
+
+    // Get inline signature display for functions
+    function getInlineSignature(symbol: DocpackSymbol): { html: string; isFunction: boolean } {
+        const isFunction = symbol.kind === 'function' || symbol.kind === 'method';
+        
+        if (!isFunction) {
+            return { html: '', isFunction: false };
+        }
+
+        // Extract just the parameter list from signature
+        const signature = symbol.signature;
+        const language = getLanguageFromFile(symbol.file);
+        
+        try {
+            // Highlight the full signature
+            const highlighted = Prism.highlight(signature, Prism.languages[language] || Prism.languages.typescript, language);
+            return { html: highlighted, isFunction: true };
+        } catch (e) {
+            return { html: signature, isFunction: true };
+        }
     }
 
     // Detect language from file extension
@@ -419,12 +445,18 @@
                         >
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-sm text-corpse">{getSymbolName(symbol.id)}</span>
+                                    <div class="flex items-center gap-2 mb-1">
                                         <span class="px-1.5 py-0.5 rounded text-[10px] bg-text-secondary/10 text-text-secondary/70">
                                             {symbol.kind}
                                         </span>
                                     </div>
+                                    {#if getInlineSignature(symbol).isFunction}
+                                        <div class="text-[11px] font-mono leading-snug overflow-hidden signature-display">
+                                            {@html getInlineSignature(symbol).html}
+                                        </div>
+                                    {:else}
+                                        <div class="font-semibold text-sm text-corpse">{getSymbolName(symbol.id)}</div>
+                                    {/if}
                                     <div class="text-xs text-text-secondary/50 mt-1 font-mono truncate">
                                         {#if getGitHubUrl(symbol)}
                                             <a
@@ -682,3 +714,39 @@
         </div>
     {/if}
 </div>
+
+<style>
+    .signature-display {
+        max-height: 3rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+    }
+
+    /* Ensure syntax highlighting is visible in compact view */
+    .signature-display :global(.token.keyword) {
+        color: #f472b6;
+        font-weight: 500;
+    }
+
+    .signature-display :global(.token.function) {
+        color: #60a5fa;
+        font-weight: 600;
+    }
+
+    .signature-display :global(.token.punctuation) {
+        color: #9ca3af;
+    }
+
+    .signature-display :global(.token.parameter),
+    .signature-display :global(.token.property) {
+        color: #d1d5db;
+    }
+
+    .signature-display :global(.token.class-name),
+    .signature-display :global(.token.builtin) {
+        color: #10b981;
+    }
+</style>
