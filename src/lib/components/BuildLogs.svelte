@@ -17,6 +17,7 @@
 	let error = $state<string | null>(null);
 	let logsContainer: HTMLDivElement;
 	let autoScroll = $state(true);
+	let jobStatus = $state<string | null>(null);
 
 	// Create a client-side Supabase client for realtime subscriptions
 	const supabaseConfig = $page.data.supabase;
@@ -100,7 +101,7 @@
 		fetchInitialLogs();
 
 		// Subscribe to new logs
-		const channel = supabase
+		const logsChannel = supabase
 			.channel(`job_logs:${jobId}`)
 			.on(
 				'postgres_changes',
@@ -116,9 +117,35 @@
 			)
 			.subscribe();
 
+		// Subscribe to job status changes
+		const jobChannel = supabase
+			.channel(`job_status:${jobId}`)
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'jobs',
+					filter: `id=eq.${jobId}`
+				},
+				(payload) => {
+					const newStatus = (payload.new as { status: string }).status;
+					jobStatus = newStatus;
+
+					// Auto-close on successful completion
+					if (newStatus === 'completed') {
+						setTimeout(() => {
+							onClose?.();
+						}, 1500);
+					}
+				}
+			)
+			.subscribe();
+
 		// Cleanup on unmount
 		return () => {
-			supabase.removeChannel(channel);
+			supabase.removeChannel(logsChannel);
+			supabase.removeChannel(jobChannel);
 		};
 	});
 </script>

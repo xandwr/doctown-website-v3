@@ -93,7 +93,7 @@
 </script>
 
 <div
-	class="bg-bg-secondary border border-border-default rounded-sm p-2 hover:border-border-strong transition-all cursor-pointer"
+	class="bg-bg-secondary border border-border-default rounded-sm p-2 hover:border-border-strong transition-all cursor-pointer h-full flex flex-col"
 >
 	<!-- Top row: Name, Status Badge, and Updated Date -->
 	<div class="flex items-start justify-between gap-1 mb-3">
@@ -141,7 +141,7 @@
 		</div>
 	</div>
 
-	<div class="mb-2 bg-bg-primary/50 rounded-md p-2">
+	<div class="mb-2 bg-bg-primary/50 rounded-md p-2 flex-1">
 		<div class="flex items-start justify-between gap-2">
 			<span class="text-text-tertiary text-xs font-mono">Description:</span>
 			{#if !isEditingDescription}

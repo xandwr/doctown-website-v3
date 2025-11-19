@@ -9,6 +9,7 @@
         onStatusUpdate,
         onCancel,
         onDelete,
+        onDocpackUpdated,
     }: {
         docpack: Docpack | null;
         position: { top: number; left: number; width: number } | null;
@@ -16,6 +17,7 @@
         onStatusUpdate: (docpack: Docpack, newStatus: DocpackStatus) => void;
         onCancel?: (docpack: Docpack) => void;
         onDelete?: (docpack: Docpack) => void;
+        onDocpackUpdated?: (updatedDocpack: Docpack) => void;
     } = $props();
 
     let isVisible = $derived(!!docpack && !!position);
@@ -98,8 +100,9 @@
 
             if (response.ok) {
                 const result = await response.json();
-                if (docpack) {
-                    docpack.frozen = result.docpack.frozen;
+                // Notify parent of the update to trigger proper reactivity
+                if (onDocpackUpdated) {
+                    onDocpackUpdated(result.docpack);
                 }
             } else {
                 console.error("Failed to toggle frozen state");
@@ -144,8 +147,9 @@
 
             if (response.ok) {
                 const result = await response.json();
-                if (docpack) {
-                    docpack.description = result.docpack.description;
+                // Notify parent of the update to trigger proper reactivity
+                if (onDocpackUpdated) {
+                    onDocpackUpdated(result.docpack);
                 }
                 isEditingDescription = false;
             } else {
@@ -231,22 +235,42 @@
                     <!-- Privacy Status Bubble (only shown for valid/public docpacks) -->
                     <!-- Green for public, Purple for private -->
                     {#if docpack.status === "valid" || docpack.status === "public"}
-                        <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <div
-                            onclick={() => {
-                                if (docpack.status === "public") {
-                                    handleUnpublish();
-                                } else {
-                                    handlePublish();
-                                }
-                            }}
-                            class="px-3 py-1.5 text-xs font-mono border rounded-sm cursor-pointer transition-colors {docpack.status === 'public' ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10' : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
-                            role="button"
-                            tabindex="0"
-                            title="Click to toggle privacy"
-                        >
-                            {docpack.status === "public" ? "public" : "private"}
+                        <div class="flex items-center gap-1.5">
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div
+                                onclick={() => {
+                                    if (docpack.status === "public") {
+                                        handleUnpublish();
+                                    } else {
+                                        handlePublish();
+                                    }
+                                }}
+                                class="px-3 py-1.5 text-xs font-mono border rounded-sm cursor-pointer transition-colors {docpack.status === 'public' ? 'text-privacy-public border-privacy-public/40 hover:bg-privacy-public/10' : 'text-privacy-private border-privacy-private/40 hover:bg-privacy-private/10'}"
+                                role="button"
+                                tabindex="0"
+                                title="Click to toggle privacy"
+                            >
+                                {docpack.status === "public" ? "public" : "private"}
+                            </div>
+                            <!-- Animated hint arrow with text -->
+                            <div class="privacy-hint-arrow flex items-center gap-1 text-text-tertiary">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-3 w-3"
+                                    fill="none"
+                                    viewBox="0 0 16 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                    />
+                                </svg>
+                                <span class="text-[10px] font-mono whitespace-nowrap">Click to change!</span>
+                            </div>
                         </div>
                     {/if}
 
@@ -526,5 +550,21 @@
 
     .mutable-pulse {
         animation: mutable-glow 2s ease-in-out infinite;
+    }
+
+    /* Privacy hint arrow animation */
+    @keyframes hint-nudge {
+        0%, 100% {
+            transform: translateX(0);
+            opacity: 0.4;
+        }
+        50% {
+            transform: translateX(-3px);
+            opacity: 0.7;
+        }
+    }
+
+    .privacy-hint-arrow {
+        animation: hint-nudge 2s ease-in-out infinite;
     }
 </style>

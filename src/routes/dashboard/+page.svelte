@@ -382,6 +382,17 @@
 			alert('Failed to delete docpack');
 		}
 	}
+
+	function handleDocpackUpdated(updatedDocpack: Docpack) {
+		// Update the docpack in the array with proper reactivity
+		docpacks = docpacks.map(d =>
+			d.id === updatedDocpack.id ? { ...d, ...updatedDocpack } : d
+		);
+		// Also update selectedDocpack so modal shows updated state
+		if (selectedDocpack && selectedDocpack.id === updatedDocpack.id) {
+			selectedDocpack = { ...selectedDocpack, ...updatedDocpack };
+		}
+	}
 </script>
 
 <div class="h-full p-8">
@@ -578,6 +589,7 @@
 	onStatusUpdate={handleStatusUpdate}
 	onCancel={handleCancelDocpack}
 	onDelete={handleDeleteDocpack}
+	onDocpackUpdated={handleDocpackUpdated}
 />
 
 {#if showBuildLogs && buildLogsJobId}

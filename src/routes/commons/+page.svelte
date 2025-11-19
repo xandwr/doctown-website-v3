@@ -145,7 +145,7 @@
                 </p>
             </div>
         {:else if publicDocpacks.length > 0}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
                 {#each publicDocpacks as docpack (docpack.id)}
                     <button
                         onclick={(e) => openConfigModal(docpack, e)}
