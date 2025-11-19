@@ -181,11 +181,16 @@
 	</div>
 
 	<div class="flex items-center justify-between gap-2 mt-3">
-		{#if docpack.version}
-			<div class="text-xs">
-				<span class="text-text-tertiary font-mono">
-					v{docpack.version}
-				</span>
+		{#if docpack.tracked_branch || docpack.commit_hash}
+			<div class="text-xs font-mono text-text-tertiary flex items-center gap-1">
+				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l-7 7 7 7M15 5l7 7-7 7" transform="rotate(90 12 12)" />
+				</svg>
+				<span class="text-text-secondary">{docpack.tracked_branch || 'main'}</span>
+				{#if docpack.commit_hash}
+					<span class="text-text-tertiary">@</span>
+					<span class="text-text-tertiary">{docpack.commit_hash.substring(0, 7)}</span>
+				{/if}
 			</div>
 		{:else}
 			<div></div>

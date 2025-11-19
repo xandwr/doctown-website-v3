@@ -1,5 +1,6 @@
 <script lang="ts">
     import { hasASTSupport, getLanguageStatus, getLanguageTheme } from "$lib/languageSupport";
+    import BranchSelector from "./BranchSelector.svelte";
 
     interface GitHubRepo {
         id: number;
@@ -22,8 +23,18 @@
         repo: GitHubRepo | null;
         position: { top: number; left: number; width: number } | null;
         onClose: () => void;
-        onCreateDocpack: (repo: GitHubRepo) => void;
+        onCreateDocpack: (repo: GitHubRepo, branch: string) => void;
     } = $props();
+
+    // Track selected branch for each repo
+    let selectedBranch = $state("main");
+
+    // Reset branch when repo changes
+    $effect(() => {
+        if (repo) {
+            selectedBranch = "main"; // Reset to default when switching repos
+        }
+    });
 
     function handleVisitGitHub() {
         if (repo) {
@@ -34,10 +45,18 @@
 
     function handleCreateDocpack() {
         if (repo) {
-            onCreateDocpack(repo);
+            onCreateDocpack(repo, selectedBranch);
             onClose();
         }
     }
+
+    function handleBranchSelect(branch: string) {
+        selectedBranch = branch;
+    }
+
+    // Extract owner and repo name from full_name
+    const ownerName = $derived(repo ? repo.full_name.split('/')[0] : '');
+    const repoName = $derived(repo ? repo.full_name.split('/')[1] : '');
 
     function handleBackdropClick(event: MouseEvent) {
         if (event.target === event.currentTarget) {
@@ -133,6 +152,17 @@
                 <span class="text-rust">!</span> Limited support - {repo.language} has basic docs only
             </div>
         {/if}
+        <!-- Branch selector row -->
+        <div class="px-3 py-2 border-b border-ash flex items-center justify-between">
+            <span class="text-xs font-mono text-shadow">Branch:</span>
+            <BranchSelector
+                owner={ownerName}
+                repo={repoName}
+                selectedBranch={selectedBranch}
+                onSelect={handleBranchSelect}
+            />
+        </div>
+
         <button
             onclick={handleVisitGitHub}
             class="w-full text-left px-3 py-2 hover:bg-ash text-corpse hover:text-whisper font-mono text-xs transition-all border-b border-ash"
@@ -144,7 +174,7 @@
             onclick={handleCreateDocpack}
             class="w-full text-left px-3 py-2 hover:bg-ash text-corpse hover:text-whisper font-mono text-xs transition-all"
         >
-            Generate Docs
+            Generate Docs ({selectedBranch})
         </button>
     </div>
 {/if}

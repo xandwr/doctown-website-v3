@@ -20,6 +20,16 @@ export interface Docpack {
   is_private?: boolean;
   language?: string | null;
   file_url: string | null;
+  tracked_branch?: string;
+  frozen?: boolean;
+}
+
+// Branch information from GitHub API
+export interface BranchInfo {
+  name: string;
+  commit_sha: string;
+  protected: boolean;
+  is_default: boolean;
 }
 
 // Status badge configuration - semantic color system

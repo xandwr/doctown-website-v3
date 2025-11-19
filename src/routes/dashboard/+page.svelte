@@ -3,6 +3,7 @@
 	import DocpackCard from "$lib/components/DocpackCard.svelte";
 	import DocpackConfigModal from "$lib/components/DocpackConfigModal.svelte";
 	import BuildLogs from "$lib/components/BuildLogs.svelte";
+	import RepoModal from "$lib/components/RepoModal.svelte";
 	import type { Docpack, DocpackStatus } from "$lib/types";
 	import { hasASTSupport, getLanguageTheme } from "$lib/languageSupport";
 
@@ -29,6 +30,11 @@
 	let showRepoListModal = $state(false);
 	let hideUnsupportedRepos = $state(false);
 	let docpackModalPosition = $state<{
+		top: number;
+		left: number;
+		width: number;
+	} | null>(null);
+	let repoModalPosition = $state<{
 		top: number;
 		left: number;
 		width: number;
@@ -72,7 +78,24 @@
 		docpackModalPosition = null;
 	}
 
-	async function createDocpack(repo: GitHubRepo) {
+	function closeRepoModal() {
+		selectedRepo = null;
+		repoModalPosition = null;
+	}
+
+	function openRepoModal(repo: GitHubRepo, event: MouseEvent) {
+		const target = event.currentTarget as HTMLElement;
+		const rect = target.getBoundingClientRect();
+
+		repoModalPosition = {
+			top: rect.top + window.scrollY,
+			left: rect.left + window.scrollX,
+			width: rect.width,
+		};
+		selectedRepo = repo;
+	}
+
+	async function createDocpack(repo: GitHubRepo, branch: string = 'main') {
 		try {
 			// Call the API to create a job
 			const response = await fetch('/api/jobs/create', {
@@ -82,7 +105,7 @@
 				},
 				body: JSON.stringify({
 					repo: repo.html_url,
-					git_ref: 'main', // Default to main branch
+					git_ref: branch,
 				}),
 			});
 
@@ -106,12 +129,14 @@
 				repo_url: repo.html_url,
 				is_private: repo.private,
 				language: repo.language,
-				file_url: null
+				file_url: null,
+				tracked_branch: branch,
 			};
 
 			docpacks = [...docpacks, newDocpack];
 			availableRepos = availableRepos.filter((r) => r.id !== repo.id);
 			closeRepoListModal();
+			closeRepoModal();
 
 			// Start polling for job status
 			pollJobStatus(job_id);
@@ -462,9 +487,9 @@
 							{@const isSupported = hasASTSupport(repo.language)}
 							{@const theme = getLanguageTheme(repo.language)}
 							<button
-								onclick={() => {
+								onclick={(e) => {
 									availableRepos = repos;
-									createDocpack(repo);
+									openRepoModal(repo, e);
 								}}
 								class="w-full text-left bg-bg-secondary/30 p-4 hover:bg-hover-bg transition-all border rounded-sm {repo.language ? `${theme.borderColor} ${theme.hoverBorderColor}` : 'border-border-default hover:border-border-strong'} {!isSupported && repo.language ? 'opacity-60' : ''}"
 								>
@@ -567,3 +592,10 @@
 		}}
 	/>
 {/if}
+
+<RepoModal
+	repo={selectedRepo}
+	position={repoModalPosition}
+	onClose={closeRepoModal}
+	onCreateDocpack={createDocpack}
+/>

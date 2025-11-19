@@ -115,6 +115,8 @@ export interface Database {
           commit_hash: string | null;
           version: string | null;
           language: string | null;
+          tracked_branch: string | null;
+          frozen: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -130,6 +132,8 @@ export interface Database {
           commit_hash?: string | null;
           version?: string | null;
           language?: string | null;
+          tracked_branch?: string | null;
+          frozen?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -145,7 +149,29 @@ export interface Database {
           commit_hash?: string | null;
           version?: string | null;
           language?: string | null;
+          tracked_branch?: string | null;
+          frozen?: boolean;
           created_at?: string;
+          updated_at?: string;
+        };
+      };
+      repo_branches: {
+        Row: {
+          repo_full_name: string;
+          branch: string;
+          last_seen_commit: string;
+          updated_at: string;
+        };
+        Insert: {
+          repo_full_name: string;
+          branch: string;
+          last_seen_commit: string;
+          updated_at?: string;
+        };
+        Update: {
+          repo_full_name?: string;
+          branch?: string;
+          last_seen_commit?: string;
           updated_at?: string;
         };
       };

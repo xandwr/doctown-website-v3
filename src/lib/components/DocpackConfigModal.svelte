@@ -301,16 +301,23 @@
                             {docpack.full_name.replace('/', ':')}
                         </a>
                     </div>
-                    {#if docpack.version}
+                    {#if docpack.tracked_branch}
                         <div class="flex justify-between gap-4">
-                            <span class="text-text-tertiary">version</span>
-                            <span class="text-text-primary">v{docpack.version}</span>
+                            <span class="text-text-tertiary">branch</span>
+                            <span class="text-text-primary">{docpack.tracked_branch}</span>
                         </div>
                     {/if}
                     {#if docpack.commit_hash}
                         <div class="flex justify-between gap-4">
                             <span class="text-text-tertiary">commit</span>
-                            <span class="text-text-primary">{docpack.commit_hash.substring(0, 8)}</span>
+                            <a
+                                href="{docpack.repo_url}/commit/{docpack.commit_hash}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-primary hover:underline"
+                            >
+                                {docpack.commit_hash.substring(0, 8)}
+                            </a>
                         </div>
                     {/if}
                     {#if docpack.language}

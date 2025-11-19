@@ -233,6 +233,8 @@ export async function createDocpack(data: {
   commit_hash?: string | null;
   version?: string | null;
   language?: string | null;
+  tracked_branch?: string | null;
+  frozen?: boolean;
 }) {
   const { data: docpack, error } = await (supabase.from("docpacks") as any)
     .insert(data)

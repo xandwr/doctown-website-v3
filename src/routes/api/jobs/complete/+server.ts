@@ -36,7 +36,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Parse JSON body (no longer multipart)
     const body = await request.json();
-    const { job_id: jobId, file_url: fileUrl } = body;
+    const {
+      job_id: jobId,
+      file_url: fileUrl,
+      tracked_branch: trackedBranch,
+      commit_hash: commitHash,
+    } = body;
 
     // Validate input
     if (!jobId || typeof jobId !== "string") {
@@ -46,6 +51,9 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!fileUrl || typeof fileUrl !== "string") {
       return json({ error: "Invalid or missing file_url" }, { status: 400 });
     }
+
+    // Optional: tracked_branch and commit_hash from builder
+    // These represent the actual checked-out state during build
 
     // Verify job exists and is in 'building' status
     const { data: job, error: jobError } = await supabase
@@ -108,9 +116,11 @@ export const POST: RequestHandler = async ({ request }) => {
       file_url: fileUrl,
       public: false, // Default to private
       repo_url: job.repo,
-      commit_hash: null, // Will be populated later when we have manifest parsing
-      version: null,
+      commit_hash: commitHash || null, // From builder's actual checkout
+      version: null, // Internal only, not displayed
       language: null,
+      tracked_branch: trackedBranch || job.git_ref, // Use builder value or fall back to job's git_ref
+      frozen: false, // Default to not frozen (auto-updates enabled)
     });
 
     // Update job status to completed
