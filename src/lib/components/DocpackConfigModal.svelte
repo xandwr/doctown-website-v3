@@ -25,6 +25,7 @@
     let isEditingDescription = $state(false);
     let editedDescription = $state("");
     let isSavingDescription = $state(false);
+    let isTogglingFrozen = $state(false);
 
     // Prevent body scroll when modal is open
     $effect(() => {
@@ -77,6 +78,39 @@
 
     function handleDeleteCancel() {
         showDeleteConfirm = false;
+    }
+
+    async function handleToggleFrozen() {
+        if (!docpack || isTogglingFrozen) return;
+
+        isTogglingFrozen = true;
+
+        try {
+            const response = await fetch(`/api/docpacks/${docpack.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    frozen: !docpack.frozen,
+                }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (docpack) {
+                    docpack.frozen = result.docpack.frozen;
+                }
+            } else {
+                console.error("Failed to toggle frozen state");
+                alert("Failed to toggle frozen state. Please try again.");
+            }
+        } catch (err) {
+            console.error("Error toggling frozen state:", err);
+            alert("Error toggling frozen state. Please try again.");
+        } finally {
+            isTogglingFrozen = false;
+        }
     }
 
     function startEditingDescription(event: MouseEvent) {
@@ -216,29 +250,53 @@
                         </div>
                     {/if}
 
-                    <!-- Delete Button (only shown when onDelete is provided, i.e., owner's view) -->
+                    <!-- Action Buttons (only shown when onDelete is provided, i.e., owner's view) -->
                     {#if onDelete}
-                        <button
-                            onclick={handleDeleteClick}
-                            class="ml-auto p-2 bg-action-danger border border-action-danger rounded-sm hover:bg-action-danger/80 transition-colors"
-                            aria-label="Delete docpack"
-                            title="Delete docpack"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 text-white"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                            </svg>
-                        </button>
+                        <div class="ml-auto flex items-center gap-3">
+                            <!-- Freeze Toggle Button with Label -->
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="text-[10px] text-text-tertiary font-mono">Frozen:</span>
+                                <button
+                                    onclick={handleToggleFrozen}
+                                    disabled={isTogglingFrozen}
+                                    class="w-8 h-8 flex items-center justify-center border rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed {docpack.frozen ? 'bg-primary/20 border-primary/50 frozen-effect' : 'bg-success/20 border-success/50 mutable-pulse'}"
+                                    aria-label={docpack.frozen ? "Unfreeze docpack" : "Freeze docpack"}
+                                    title={docpack.frozen ? "Frozen - click to allow updates" : "Mutable - click to freeze"}
+                                >
+                                    {#if docpack.frozen}
+                                        <span class="text-sm">🔒</span>
+                                    {:else}
+                                        <span class="text-sm">🔓</span>
+                                    {/if}
+                                </button>
+                            </div>
+
+                            <!-- Delete Button with Label -->
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="text-[10px] text-text-tertiary font-mono">Delete:</span>
+                                <button
+                                    onclick={handleDeleteClick}
+                                    class="w-8 h-8 flex items-center justify-center bg-action-danger border border-action-danger rounded-sm hover:bg-action-danger/80 transition-colors"
+                                    aria-label="Delete docpack"
+                                    title="Delete docpack"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="h-4 w-4 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     {/if}
                 </div>
 
@@ -440,5 +498,33 @@
         animation:
             fade-in 0.2s ease-out,
             zoom-in 0.2s ease-out;
+    }
+
+    /* Frozen effect - blue glow */
+    @keyframes frozen-glow {
+        0%, 100% {
+            box-shadow: 0 0 4px rgba(59, 130, 246, 0.4), 0 0 8px rgba(59, 130, 246, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 16px rgba(59, 130, 246, 0.3);
+        }
+    }
+
+    .frozen-effect {
+        animation: frozen-glow 2s ease-in-out infinite;
+    }
+
+    /* Mutable pulse - green pulse */
+    @keyframes mutable-glow {
+        0%, 100% {
+            box-shadow: 0 0 4px rgba(16, 185, 129, 0.4), 0 0 8px rgba(16, 185, 129, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6), 0 0 16px rgba(16, 185, 129, 0.3);
+        }
+    }
+
+    .mutable-pulse {
+        animation: mutable-glow 2s ease-in-out infinite;
     }
 </style>

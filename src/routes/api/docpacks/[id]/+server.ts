@@ -59,7 +59,7 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 
     // Parse request body
     const body = await request.json();
-    const { public: isPublic, description } = body;
+    const { public: isPublic, description, frozen } = body;
 
     // Build update object with only provided fields
     const updates: any = {};
@@ -68,6 +68,9 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
     }
     if (description !== undefined) {
       updates.description = description;
+    }
+    if (typeof frozen === "boolean") {
+      updates.frozen = frozen;
     }
 
     if (Object.keys(updates).length === 0) {
