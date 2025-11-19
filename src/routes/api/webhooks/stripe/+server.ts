@@ -136,8 +136,15 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       status = "incomplete";
   }
 
-  const periodStart = (subscription as any).current_period_start;
-  const periodEnd = (subscription as any).current_period_end;
+  // Get period dates from subscription items (new Stripe API structure)
+  const subscriptionItem = (subscription as any).items?.data?.[0];
+  const periodStart =
+    subscriptionItem?.current_period_start || (subscription as any).start_date;
+  const periodEnd = subscriptionItem?.current_period_end;
+
+  if (!periodStart || !periodEnd) {
+    throw new Error(`Missing period dates for subscription ${subscription.id}`);
+  }
 
   await upsertSubscription({
     user_id: userId,
@@ -160,8 +167,18 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return;
   }
 
-  const periodStart = (subscription as any).current_period_start;
-  const periodEnd = (subscription as any).current_period_end;
+  // Get period dates from subscription items (new Stripe API structure)
+  const subscriptionItem = (subscription as any).items?.data?.[0];
+  const periodStart =
+    subscriptionItem?.current_period_start || (subscription as any).start_date;
+  const periodEnd = subscriptionItem?.current_period_end;
+
+  if (!periodStart || !periodEnd) {
+    console.error(
+      `Missing period dates for deleted subscription ${subscription.id}`,
+    );
+    return;
+  }
 
   await upsertSubscription({
     user_id: existingSub.user_id,
