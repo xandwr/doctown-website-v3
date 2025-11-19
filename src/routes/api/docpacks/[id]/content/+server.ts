@@ -142,15 +142,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     const docs: Record<string, any> = {};
     const docsFolder = zip.folder("docs");
 
-    // Debug: log all files in the ZIP
-    const allFiles = Object.keys(zip.files);
-    console.log("ZIP files:", allFiles);
-
     if (docsFolder) {
       const docFiles = Object.keys(zip.files).filter(
         (name) => name.startsWith("docs/") && name.endsWith(".json"),
       );
-      console.log("Filtered doc files:", docFiles);
 
       for (const docPath of docFiles) {
         const docFile = zip.file(docPath);
