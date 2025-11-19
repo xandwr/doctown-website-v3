@@ -113,6 +113,7 @@ export interface DocpackContent {
   manifest: DocpackManifest;
   symbols: DocpackSymbol[];
   docs: Record<string, DocpackDocumentation>;
+  tracked_branch: string | null;
 }
 
 // Symbol edit interface - stores user modifications

@@ -284,7 +284,12 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold text-text-primary">{content.manifest.project.name}</h1>
-                    <span class="text-xs text-text-secondary/60">v{content.manifest.project.version}</span>
+                    <span class="text-xs text-text-secondary/60 font-mono">
+                        {content.tracked_branch || 'main'}
+                        {#if content.manifest.project.commit}
+                            <span class="text-text-tertiary">@</span>{content.manifest.project.commit.substring(0, 7)}
+                        {/if}
+                    </span>
                     {#if hasAnyEdits}
                         <span class="px-2 py-0.5 rounded text-[10px] bg-warning/20 text-warning">
                             {Object.keys(edits).length} edit{Object.keys(edits).length !== 1 ? 's' : ''}

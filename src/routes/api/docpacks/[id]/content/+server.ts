@@ -25,7 +25,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     // Get docpack info from database
     const { data: docpack, error: dbError } = await supabase
       .from("docpacks")
-      .select("id, file_url, public, job_id, jobs!inner(user_id)")
+      .select(
+        "id, file_url, public, job_id, tracked_branch, jobs!inner(user_id)",
+      )
       .eq("id", docpackId)
       .single();
 
@@ -163,6 +165,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       manifest,
       symbols,
       docs,
+      tracked_branch: docpackData.tracked_branch || null,
     };
 
     return new Response(JSON.stringify(content), {
