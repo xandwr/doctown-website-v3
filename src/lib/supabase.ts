@@ -238,6 +238,7 @@ export async function createDocpack(data: {
   language?: string | null;
   tracked_branch?: string | null;
   frozen?: boolean;
+  symbol_count?: number | null;
 }) {
   const { data: docpack, error } = await (supabase.from("docpacks") as any)
     .insert(data)
@@ -295,6 +296,7 @@ export async function getUserDocpacks(userId: string) {
         status: pack.public ? "public" : "valid",
         is_private: !pack.public,
         job_id: pack.job_id,
+        symbol_count: pack.symbol_count,
       };
     }) || []
   );
@@ -347,6 +349,7 @@ export async function getPublicDocpacks() {
         status: "public",
         is_private: false,
         job_id: pack.job_id,
+        symbol_count: pack.symbol_count,
       };
     }) || []
   );

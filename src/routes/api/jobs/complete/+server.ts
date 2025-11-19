@@ -41,6 +41,7 @@ export const POST: RequestHandler = async ({ request }) => {
       file_url: fileUrl,
       tracked_branch: trackedBranch,
       commit_hash: commitHash,
+      symbol_count: symbolCount,
     } = body;
 
     // Validate input
@@ -121,6 +122,7 @@ export const POST: RequestHandler = async ({ request }) => {
       language: null,
       tracked_branch: trackedBranch || job.git_ref, // Use builder value or fall back to job's git_ref
       frozen: false, // Default to not frozen (auto-updates enabled)
+      symbol_count: symbolCount || null, // Number of symbols extracted
     });
 
     // Update job status to completed
