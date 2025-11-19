@@ -40,12 +40,14 @@ export async function upsertUser(data: {
   avatar_url: string;
   html_url: string;
   access_token: string;
+  email?: string | null;
 }) {
   const { data: user, error } = await (supabase.from("users") as any)
     .upsert(
       {
         github_id: data.github_id,
         github_login: data.github_login,
+        email: data.email ?? null,
         name: data.name,
         avatar_url: data.avatar_url,
         html_url: data.html_url,

@@ -22,11 +22,15 @@ export const POST = async ({ request, locals, url }: RequestEvent) => {
     // Check if user already has a Stripe customer ID
     let customerId: string;
 
-    // Try to find existing customer by email or create new one
-    const customers = await stripe.customers.list({
-      email: locals.user.github_login
+    // Try to find existing customer by verified email (if we have it) or create new one
+    const lookupEmail = (locals.user as any).email
+      ? (locals.user as any).email
+      : locals.user.github_login
         ? `${locals.user.github_login}@users.noreply.github.com`
-        : undefined,
+        : undefined;
+
+    const customers = await stripe.customers.list({
+      email: lookupEmail,
       limit: 1,
     });
 
@@ -34,9 +38,7 @@ export const POST = async ({ request, locals, url }: RequestEvent) => {
       customerId = customers.data[0].id;
     } else {
       const customer = await stripe.customers.create({
-        email: locals.user.github_login
-          ? `${locals.user.github_login}@users.noreply.github.com`
-          : undefined,
+        email: lookupEmail,
         metadata: {
           user_id: locals.user.id,
           github_login: locals.user.github_login,

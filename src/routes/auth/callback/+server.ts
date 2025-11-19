@@ -57,6 +57,28 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
   const userData = await userResponse.json();
 
+  // Fetch verified emails for the user (requires user:email scope)
+  let primaryEmail: string | null = null;
+  try {
+    const emailsResp = await fetch("https://api.github.com/user/emails", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    });
+
+    if (emailsResp.ok) {
+      const emails = await emailsResp.json();
+      // emails is an array of { email, primary, verified, visibility }
+      // Prefer primary & verified, else first verified, else null
+      const primaryVerified = emails.find((e: any) => e.primary && e.verified);
+      const firstVerified = emails.find((e: any) => e.verified);
+      primaryEmail = primaryVerified?.email ?? firstVerified?.email ?? null;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch GitHub emails:", err);
+  }
+
   try {
     // Upsert user in database (create or update)
     const user = await upsertUser({
@@ -66,6 +88,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       avatar_url: userData.avatar_url,
       html_url: userData.html_url,
       access_token: accessToken,
+      email: primaryEmail,
     });
 
     // Create session in database
