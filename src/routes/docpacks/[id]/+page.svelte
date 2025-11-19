@@ -199,7 +199,15 @@
     function selectSymbol(symbol: DocpackSymbol) {
         const mergedSymbol = getMergedSymbol(symbol);
         const originalDoc = content?.docs[symbol.doc_id] || null;
-        
+
+        console.log("selectSymbol:", {
+            symbolId: symbol.id,
+            docId: symbol.doc_id,
+            hasContent: !!content,
+            docsKeys: content ? Object.keys(content.docs) : [],
+            originalDoc,
+        });
+
         selectedSymbol = mergedSymbol;
         selectedDoc = originalDoc ? getMergedDoc(originalDoc, symbol.id) : null;
         showMobileDoc = true;
