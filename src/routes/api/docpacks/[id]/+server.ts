@@ -4,6 +4,31 @@ import { supabase } from "$lib/supabase";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
 
+export const GET: RequestHandler = async ({ params }) => {
+  const docpackId = params.id;
+
+  if (!docpackId) {
+    return json({ error: "Missing docpack ID" }, { status: 400 });
+  }
+
+  try {
+    const { data: docpack, error: fetchError } = await supabase
+      .from("docpacks")
+      .select("*, jobs(user_id)")
+      .eq("id", docpackId)
+      .single();
+
+    if (fetchError || !docpack) {
+      return json({ error: "Docpack not found" }, { status: 404 });
+    }
+
+    return json(docpack);
+  } catch (error) {
+    console.error("Error fetching docpack:", error);
+    return json({ error: "Failed to fetch docpack" }, { status: 500 });
+  }
+};
+
 export const PATCH: RequestHandler = async ({ params, locals, request }) => {
   // Check if user is authenticated
   if (!locals.user) {
