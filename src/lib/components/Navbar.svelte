@@ -76,6 +76,13 @@
                     Commons
                 </a>
                 <a
+                    href="/blog"
+                    class="hover:text-text-primary transition-colors"
+                    class:text-primary={$page.url.pathname.startsWith("/blog")}
+                >
+                    Blog
+                </a>
+                <a
                     href={getDashboardUrl()}
                     class="transition-colors hover:text-text-primary"
                     class:text-primary={$page.url.pathname === "/dashboard"}
@@ -188,6 +195,14 @@
                         onclick={() => (showMobileMenu = false)}
                     >
                         Commons
+                    </a>
+                    <a
+                        href="/blog"
+                        class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
+                        class:text-primary={$page.url.pathname.startsWith("/blog")}
+                        onclick={() => (showMobileMenu = false)}
+                    >
+                        Blog
                     </a>
                     <a
                         href={getDashboardUrl()}
