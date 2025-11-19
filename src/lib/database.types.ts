@@ -14,6 +14,7 @@ export interface Database {
           id: string;
           github_id: number;
           github_login: string;
+          email: string | null;
           name: string | null;
           avatar_url: string | null;
           html_url: string | null;
@@ -25,6 +26,7 @@ export interface Database {
           id?: string;
           github_id: number;
           github_login: string;
+          email?: string | null;
           name?: string | null;
           avatar_url?: string | null;
           html_url?: string | null;
@@ -36,6 +38,7 @@ export interface Database {
           id?: string;
           github_id?: number;
           github_login?: string;
+          email?: string | null;
           name?: string | null;
           avatar_url?: string | null;
           html_url?: string | null;
