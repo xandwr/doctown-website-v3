@@ -186,12 +186,12 @@
         d3
           .forceLink(d3Edges as any)
           .id((d: any) => d.id)
-          .distance(256)
-          .strength((d: any) => d.weight),
+          .distance(150)
+          .strength(0.3),
       )
-      .force("charge", d3.forceManyBody().strength(-64))
-      .force("center", d3.forceCenter(0, 0))
-      .force("collision", d3.forceCollide().radius(32));
+      .force("charge", d3.forceManyBody().strength(-800))
+      .force("center", d3.forceCenter(0, 0).strength(0.05))
+      .force("collision", d3.forceCollide().radius(50));
 
     // Create edges
     const link = g
