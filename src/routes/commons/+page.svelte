@@ -176,4 +176,5 @@
     position={modalPosition}
     onClose={closeModal}
     onStatusUpdate={handleStatusUpdate}
+    readonly={true}
 />

@@ -23,6 +23,8 @@
   let isMobile = $state(false);
   let selectedNode: GraphNode | null = $state(null);
   let linkSelection: any = null;
+  let detailPanelGroup: any = null;
+  let currentTransform: any = null;
 
   // Color scheme for node roles
   const roleColors: Record<NodeRole, string> = {
@@ -220,6 +222,7 @@
       .scaleExtent([0.1, 8])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
+        currentTransform = event.transform;
         resetIdleTimer();
       });
 
@@ -230,6 +233,7 @@
       if (selectedNodeId) {
         selectedNodeId = null;
         selectedNode = null;
+        hideDetailPanel();
         // Reset all edges to normal
         link
           .attr("stroke-opacity", 0.3)
@@ -338,6 +342,7 @@
         if (selectedNodeId === d.id) {
           selectedNodeId = null;
           selectedNode = null;
+          hideDetailPanel();
           // Reset all edges to normal
           link
             .attr("stroke-opacity", 0.3)
@@ -348,6 +353,7 @@
         } else {
           selectedNodeId = d.id;
           selectedNode = d;
+          renderDetailPanel(d);
           // Highlight connected edges
           link.each(function (linkData: any) {
             const isConnected =
@@ -388,6 +394,9 @@
       .attr("fill", "#e2e8f0")
       .attr("pointer-events", "none");
 
+    // Create detail panel group (world-space)
+    detailPanelGroup = g.append("g").attr("class", "detail-panel").style("display", "none");
+
     // Tooltip
     const tooltip = d3
       .select(container)
@@ -405,9 +414,17 @@
       .style("max-width", "300px");
 
     node
-      .on("mouseover", (event, d) => {
-        // Skip edge highlighting during drag or if a node is selected
-        if (isDragging || selectedNodeId) return;
+      .on("mouseenter", (event, d) => {
+        // Skip if dragging, node selected, or this is a touch device (mobile)
+        if (isDragging || selectedNodeId || isMobile) return;
+
+        // Check if this is a real mouse event (not touch)
+        // Touch events have pointerType 'touch' or sourceCapabilities
+        const isTouch = event.sourceEvent?.pointerType === 'touch' ||
+                       event.sourceEvent?.type?.startsWith('touch') ||
+                       'ontouchstart' in window;
+
+        if (isTouch) return;
 
         // Only update if we're hovering a different node
         if (hoveredNodeId === d.id) return;
@@ -447,11 +464,14 @@
         });
       })
       .on("mousemove", (event) => {
+        // Only move tooltip if it's visible and not on mobile
+        if (isMobile || selectedNodeId) return;
+
         tooltip
           .style("top", event.pageY - 10 + "px")
           .style("left", event.pageX + 10 + "px");
       })
-      .on("mouseout", () => {
+      .on("mouseleave", () => {
         // Don't reset if a node is selected
         if (selectedNodeId) return;
 
@@ -527,6 +547,194 @@
       const s: any = event.subject;
       s.fx = null;
       s.fy = null;
+    }
+
+    function renderDetailPanel(node: GraphNode) {
+      if (!detailPanelGroup) return;
+
+      // Hide tooltip when opening detail panel
+      tooltip.style("visibility", "hidden");
+      hoveredNodeId = null;
+
+      // Clear previous panel
+      detailPanelGroup.selectAll("*").remove();
+      detailPanelGroup.style("display", "block");
+
+      const nodeData: any = simulation?.nodes().find((n: any) => n.id === node.id);
+      if (!nodeData || nodeData.x === undefined || nodeData.y === undefined) return;
+
+      const panelWidth = 200;
+      const panelHeight = onNodeClick ? 165 : 140; // Taller if button exists
+      const offset = 30; // Distance from node
+      const nodeX = nodeData.x;
+      const nodeY = nodeData.y;
+
+      // Position panel to the right of the node (or left if near edge)
+      // Smart positioning: check if we should place it to the left
+      const placeLeft = nodeX > 0; // Simple heuristic: if node is on right side, place panel on left
+      const panelX = placeLeft ? nodeX - offset - panelWidth : nodeX + offset;
+      const panelY = nodeY - panelHeight / 2;
+
+      // Connection line from node to panel
+      detailPanelGroup
+        .append("line")
+        .attr("x1", nodeX)
+        .attr("y1", nodeY)
+        .attr("x2", panelX)
+        .attr("y2", panelY + panelHeight / 2)
+        .attr("stroke", roleColors[node.role])
+        .attr("stroke-width", 2)
+        .attr("stroke-dasharray", "4,4")
+        .attr("opacity", 0.6);
+
+      // Panel background with border
+      detailPanelGroup
+        .append("rect")
+        .attr("x", panelX)
+        .attr("y", panelY)
+        .attr("width", panelWidth)
+        .attr("height", panelHeight)
+        .attr("fill", "#1f2937")
+        .attr("stroke", roleColors[node.role])
+        .attr("stroke-width", 2)
+        .attr("rx", 6)
+        .attr("opacity", 0.95);
+
+      // Node name (title)
+      detailPanelGroup
+        .append("text")
+        .attr("x", panelX + 10)
+        .attr("y", panelY + 20)
+        .attr("fill", "#f3f4f6")
+        .attr("font-size", 12)
+        .attr("font-weight", "600")
+        .text(node.name.length > 22 ? node.name.substring(0, 22) + "..." : node.name);
+
+      // Role indicator
+      detailPanelGroup
+        .append("circle")
+        .attr("cx", panelX + 10)
+        .attr("cy", panelY + 34)
+        .attr("r", 4)
+        .attr("fill", roleColors[node.role]);
+
+      detailPanelGroup
+        .append("text")
+        .attr("x", panelX + 20)
+        .attr("y", panelY + 38)
+        .attr("fill", "#9ca3af")
+        .attr("font-size", 9)
+        .text(node.role);
+
+      // Condensed details
+      const details = [
+        { label: "Type", value: node.kind },
+        { label: "File", value: node.file.split("/").pop() || "" },
+        { label: "Importance", value: node.importance.toString() },
+        { label: "Connections", value: `${node.in_degree}↓ ${node.out_degree}↑` },
+      ];
+
+      details.forEach((detail, i) => {
+        const y = panelY + 56 + i * 18;
+
+        detailPanelGroup
+          .append("text")
+          .attr("x", panelX + 10)
+          .attr("y", y)
+          .attr("fill", "#6b7280")
+          .attr("font-size", 9)
+          .text(detail.label + ":");
+
+        detailPanelGroup
+          .append("text")
+          .attr("x", panelX + 75)
+          .attr("y", y)
+          .attr("fill", "#e5e7eb")
+          .attr("font-size", 9)
+          .text(detail.value.length > 16 ? detail.value.substring(0, 16) + "..." : detail.value);
+      });
+
+      // Close button (small X)
+      const closeBtn = detailPanelGroup.append("g")
+        .attr("class", "close-btn")
+        .attr("cursor", "pointer")
+        .on("click", () => {
+          selectedNodeId = null;
+          selectedNode = null;
+          detailPanelGroup.style("display", "none");
+          // Reset edges
+          link
+            .attr("stroke-opacity", 0.3)
+            .attr("filter", "none")
+            .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+        });
+
+      closeBtn
+        .append("circle")
+        .attr("cx", panelX + panelWidth - 15)
+        .attr("cy", panelY + 15)
+        .attr("r", 8)
+        .attr("fill", "#374151")
+        .attr("opacity", 0.8);
+
+      closeBtn
+        .append("path")
+        .attr("d", `M ${panelX + panelWidth - 18},${panelY + 12} L ${panelX + panelWidth - 12},${panelY + 18} M ${panelX + panelWidth - 18},${panelY + 18} L ${panelX + panelWidth - 12},${panelY + 12}`)
+        .attr("stroke", "#9ca3af")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-linecap", "round");
+
+      // "View Symbol" button (if onNodeClick exists)
+      if (onNodeClick) {
+        const viewBtn = detailPanelGroup.append("g")
+          .attr("class", "view-btn")
+          .attr("cursor", "pointer")
+          .on("click", () => {
+            onNodeClick(node.id);
+            selectedNodeId = null;
+            selectedNode = null;
+            detailPanelGroup.style("display", "none");
+            // Reset edges
+            link
+              .attr("stroke-opacity", 0.3)
+              .attr("filter", "none")
+              .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+          });
+
+        viewBtn
+          .append("rect")
+          .attr("x", panelX + 10)
+          .attr("y", panelY + panelHeight - 28)
+          .attr("width", panelWidth - 20)
+          .attr("height", 20)
+          .attr("fill", "#2563eb")
+          .attr("rx", 4)
+          .attr("opacity", 0.9);
+
+        viewBtn
+          .append("text")
+          .attr("x", panelX + panelWidth / 2)
+          .attr("y", panelY + panelHeight - 15)
+          .attr("fill", "#ffffff")
+          .attr("font-size", 9)
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "500")
+          .text("View in Symbol List");
+
+        // Hover effect
+        const btnRect = viewBtn.select("rect");
+        viewBtn.on("mouseenter", () => {
+          btnRect.attr("opacity", 1);
+        }).on("mouseleave", () => {
+          btnRect.attr("opacity", 0.9);
+        });
+      }
+    }
+
+    function hideDetailPanel() {
+      if (detailPanelGroup) {
+        detailPanelGroup.style("display", "none");
+      }
     }
   }
 </script>
@@ -716,153 +924,6 @@
     </div>
   {/if}
 
-  <!-- Node Details Modal -->
-  {#if selectedNode}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onclick={(e) => {
-        if (e.target === e.currentTarget) {
-          selectedNode = null;
-          selectedNodeId = null;
-          // Reset all edges to normal
-          if (linkSelection) {
-            linkSelection
-              .attr("stroke-opacity", 0.3)
-              .attr("filter", "none")
-              .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
-          }
-        }
-      }}
-    >
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        class="bg-gray-800 rounded-lg p-4 md:p-6 max-w-md w-full shadow-2xl border border-gray-700"
-        onclick={(e) => e.stopPropagation()}
-      >
-        <div class="flex justify-between items-start mb-4">
-          <div class="flex-1">
-            <h3
-              class="text-lg md:text-xl font-semibold text-gray-100 wrap-break-word"
-            >
-              {selectedNode.name}
-            </h3>
-            <div class="flex items-center gap-2 mt-1">
-              <div
-                class="w-3 h-3 rounded-full"
-                style="background-color: {roleColors[selectedNode.role]}"
-              ></div>
-              <span class="text-xs text-gray-400">{selectedNode.role}</span>
-            </div>
-          </div>
-          <button
-            onclick={() => {
-              selectedNode = null;
-              selectedNodeId = null;
-              // Reset all edges to normal
-              if (linkSelection) {
-                linkSelection
-                  .attr("stroke-opacity", 0.3)
-                  .attr("filter", "none")
-                  .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
-              }
-            }}
-            class="text-gray-400 hover:text-gray-200 p-1 -mt-1 -mr-1"
-            aria-label="Close"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div class="space-y-2 text-sm mb-6">
-          <div class="flex justify-between">
-            <span class="text-gray-400">Type:</span>
-            <span class="text-gray-200">{selectedNode.kind}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">File:</span>
-            <span class="text-gray-200 truncate ml-2" title={selectedNode.file}>
-              {selectedNode.file.split("/").pop()}
-            </span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">Line:</span>
-            <span class="text-gray-200">{selectedNode.line}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">Importance:</span>
-            <span class="text-gray-200">{selectedNode.importance}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">PageRank:</span>
-            <span class="text-gray-200">{selectedNode.pagerank.toFixed(4)}</span
-            >
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">Connections:</span>
-            <span class="text-gray-200">
-              {selectedNode.in_degree} in / {selectedNode.out_degree} out
-            </span>
-          </div>
-        </div>
-
-        <div class="flex gap-3">
-          <button
-            onclick={() => {
-              selectedNode = null;
-              selectedNodeId = null;
-              // Reset all edges
-              if (linkSelection) {
-                linkSelection
-                  .attr("stroke-opacity", 0.3)
-                  .attr("filter", "none")
-                  .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
-              }
-            }}
-            class="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors duration-200 text-sm font-medium"
-          >
-            Close
-          </button>
-          {#if onNodeClick}
-            <button
-              onclick={() => {
-                if (onNodeClick && selectedNode) {
-                  onNodeClick(selectedNode.id);
-                }
-                selectedNode = null;
-                selectedNodeId = null;
-                // Reset all edges
-                if (linkSelection) {
-                  linkSelection
-                    .attr("stroke-opacity", 0.3)
-                    .attr("filter", "none")
-                    .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
-                }
-              }}
-              class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
-            >
-              View in Symbol List
-            </button>
-          {/if}
-        </div>
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>

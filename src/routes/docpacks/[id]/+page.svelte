@@ -293,6 +293,14 @@
     }
 
     onMount(async () => {
+        // Check URL parameter for initial view mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewParam = urlParams.get('view');
+        const shouldLoadGraph = viewParam === 'graph';
+        if (shouldLoadGraph) {
+            viewMode = 'graph';
+        }
+
         try {
             const response = await fetch(`/api/docpacks/${docpackId}/content`);
             if (!response.ok) {
@@ -300,7 +308,7 @@
                 throw new Error(errorData.error || "Failed to load docpack");
             }
             content = await response.json();
-            
+
             // Check if user owns this docpack and get repo info
             if ($page.data.user) {
                 const docpackResponse = await fetch(`/api/docpacks/${docpackId}`);
@@ -321,6 +329,11 @@
                     repoUrl = docpackData.repo_url;
                     commitHash = docpackData.commit_hash;
                 }
+            }
+
+            // Load graph data if opening in graph view
+            if (shouldLoadGraph) {
+                await loadGraphData();
             }
         } catch (err) {
             error = err instanceof Error ? err.message : "Failed to load docpack";

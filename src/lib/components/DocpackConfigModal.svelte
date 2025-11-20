@@ -10,6 +10,7 @@
         onCancel,
         onDelete,
         onDocpackUpdated,
+        readonly = false,
     }: {
         docpack: Docpack | null;
         position: { top: number; left: number; width: number } | null;
@@ -18,6 +19,7 @@
         onCancel?: (docpack: Docpack) => void;
         onDelete?: (docpack: Docpack) => void;
         onDocpackUpdated?: (updatedDocpack: Docpack) => void;
+        readonly?: boolean;
     } = $props();
 
     let isVisible = $derived(!!docpack && !!position);
@@ -365,7 +367,7 @@
                         <span class="text-text-tertiary text-xs font-mono"
                             >Description</span
                         >
-                        {#if !isEditingDescription}
+                        {#if !isEditingDescription && !readonly}
                             <button
                                 onclick={startEditingDescription}
                                 class="text-xs text-primary hover:text-primary/80 font-mono transition-colors"
@@ -548,6 +550,12 @@
                                     class="inline-flex items-center justify-center bg-success/10 text-success border border-success/40 rounded-sm px-4 py-2 text-sm font-lighter hover:bg-success/20 transition-colors text-center min-w-36"
                                 >
                                     <b class="mr-1">View</b> Documentation
+                                </a>
+                                <a
+                                    href="/docpacks/{docpack.id}?view=graph"
+                                    class="inline-flex items-center justify-center bg-primary/10 text-primary border border-primary/40 rounded-sm px-4 py-2 text-sm font-lighter hover:bg-primary/20 transition-colors text-center min-w-36"
+                                >
+                                    <b class="mr-1">View</b> Graph
                                 </a>
                                 <a
                                     href={docpack.file_url}
