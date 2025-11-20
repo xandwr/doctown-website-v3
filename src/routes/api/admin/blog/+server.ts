@@ -4,7 +4,7 @@ import { supabase } from "$lib/supabase";
 
 // Admin check helper
 function isAdmin(user: any): boolean {
-  const username = user?.login || user?.github_login;
+  const username = user?.github_login;
   return username === "xandwr";
 }
 
@@ -70,8 +70,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       );
     }
 
-    const { data: post, error } = await supabase
-      .from("blog_posts")
+    const { data: post, error } = await (supabase.from("blog_posts") as any)
       .insert({
         slug,
         title,

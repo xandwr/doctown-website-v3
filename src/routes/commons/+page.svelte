@@ -151,7 +151,7 @@
                         onclick={(e) => openConfigModal(docpack, e)}
                         class="text-left"
                     >
-                        <DocpackCard {docpack} />
+                        <DocpackCard {docpack} isOwner={false} />
                     </button>
                 {/each}
             </div>

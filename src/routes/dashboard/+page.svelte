@@ -425,7 +425,7 @@
 								onclick={(e) => openDocpackModal(docpack, e)}
 								class="w-full text-left"
 							>
-								<DocpackCard {docpack} />
+								<DocpackCard {docpack} isOwner={true} />
 							</button>
 						{/each}
 						</div>

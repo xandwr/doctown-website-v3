@@ -27,6 +27,7 @@ export type GithubInstallation =
   Database["public"]["Tables"]["github_installations"]["Row"];
 export type JobLog = Database["public"]["Tables"]["job_logs"]["Row"];
 export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
+export type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
 
 // Database helper functions
 

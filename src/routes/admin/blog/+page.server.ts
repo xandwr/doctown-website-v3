@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   // Check if user is admin
-  const username = locals.user.login || locals.user.github_login;
+  const username = locals.user.github_login;
   if (username !== "xandwr") {
     throw redirect(303, "/");
   }

@@ -2,7 +2,7 @@
 	import type { Docpack } from "$lib/types";
 	import { STATUS_CONFIG } from "$lib/types";
 
-	let { docpack }: { docpack: Docpack } = $props();
+	let { docpack, isOwner = false }: { docpack: Docpack; isOwner?: boolean } = $props();
 
 	let showCopiedTooltip = $state(false);
 	let isEditingDescription = $state(false);
@@ -144,7 +144,7 @@
 	<div class="mb-2 bg-bg-primary/50 rounded-md p-2 flex-1">
 		<div class="flex items-start justify-between gap-2">
 			<span class="text-text-tertiary text-xs font-mono">Description:</span>
-			{#if !isEditingDescription}
+			{#if !isEditingDescription && isOwner}
 				<button
 					onclick={startEditingDescription}
 					class="text-xs underline text-primary hover:text-primary/80 font-mono transition-colors"
