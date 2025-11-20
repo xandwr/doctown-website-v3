@@ -205,13 +205,22 @@
 		{/if}
 
 		{#if docpack.status === "public" || docpack.status === "valid"}
-			<a
-				href="/docpacks/{docpack.id}"
-				onclick={(e) => e.stopPropagation()}
-				class="text-xs font-mono px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm transition-colors"
-			>
-				View Docs
-			</a>
+			<div class="flex gap-2">
+				<a
+					href="/docpacks/{docpack.id}"
+					onclick={(e) => e.stopPropagation()}
+					class="text-xs font-mono px-3 py-1 bg-secondary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm transition-colors"
+				>
+					View Docs
+				</a>
+				<a
+					href="/docpacks/{docpack.id}?view=graph"
+					onclick={(e) => e.stopPropagation()}
+					class="text-xs font-mono px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-sm transition-colors"
+				>
+					View Graph
+				</a>
+			</div>
 		{/if}
 	</div>
 </div>
