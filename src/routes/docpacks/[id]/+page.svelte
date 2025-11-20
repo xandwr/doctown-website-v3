@@ -1,9 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/stores";
-    import type { DocpackContent, DocpackSymbol, DocpackDocumentation, SymbolEdit } from "$lib/types";
+    import type { DocpackContent, DocpackSymbol, DocpackDocumentation, SymbolEdit, CodeGraph } from "$lib/types";
     import SymbolEditor from "$lib/components/SymbolEditor.svelte";
     import CodeBlock from "$lib/components/CodeBlock.svelte";
+    import GraphVisualization from "$lib/components/GraphVisualization.svelte";
     import Prism from "prismjs";
     import "prismjs/components/prism-typescript";
     import "prismjs/components/prism-javascript";
@@ -28,6 +29,12 @@
     let focusField = $state<string | undefined>(undefined);
     let repoUrl = $state<string | null>(null);
     let commitHash = $state<string | null>(null);
+
+    // Graph visualization state
+    let viewMode = $state<"symbols" | "graph">("symbols");
+    let graphData = $state<CodeGraph | null>(null);
+    let loadingGraph = $state(false);
+    let graphError = $state<string | null>(null);
 
     const docpackId = $derived($page.params.id);
     const hasAnyEdits = $derived(Object.keys(edits).length > 0);
@@ -356,7 +363,7 @@
 
     async function exportWithEdits() {
         if (!hasAnyEdits) return;
-        
+
         exporting = true;
         try {
             const response = await fetch(`/api/docpacks/${docpackId}/export`, {
@@ -369,7 +376,7 @@
             }
 
             const result = await response.json();
-            
+
             // Trigger download
             const link = document.createElement("a");
             link.href = result.download_url;
@@ -377,12 +384,51 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             alert(`Successfully exported docpack with ${result.edits_applied} edits applied!`);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Failed to export docpack");
         } finally {
             exporting = false;
+        }
+    }
+
+    async function loadGraphData() {
+        if (graphData) return; // Already loaded
+
+        loadingGraph = true;
+        graphError = null;
+
+        try {
+            const response = await fetch(`/api/docpacks/${docpackId}/graph`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to load graph data");
+            }
+            graphData = await response.json();
+        } catch (err) {
+            graphError = err instanceof Error ? err.message : "Failed to load graph data";
+            console.error("Graph loading error:", err);
+        } finally {
+            loadingGraph = false;
+        }
+    }
+
+    function toggleViewMode() {
+        if (viewMode === "symbols") {
+            viewMode = "graph";
+            loadGraphData(); // Load graph data when switching to graph view
+        } else {
+            viewMode = "symbols";
+        }
+    }
+
+    function handleNodeClick(nodeId: string) {
+        // Find the symbol that matches the node ID and select it
+        const symbol = content?.symbols.find(s => s.id === nodeId);
+        if (symbol) {
+            viewMode = "symbols"; // Switch back to symbols view
+            selectSymbol(symbol);
         }
     }
 
@@ -401,7 +447,7 @@
     }
 </script>
 
-<div class="h-full flex flex-col bg-bg-primary text-text-secondary">
+<div class="h-full flex flex-col bg-bg-primary/20 text-text-secondary">
     {#if loading}
         <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
@@ -418,7 +464,7 @@
         </div>
     {:else if content}
         <!-- Compact header bar -->
-        <div class="shrink-0 border-b border-border-default px-4 py-3">
+        <div class="shrink-0 border-b border-border-default px-4 py-3 bg-bg-primary relative z-20">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold text-text-primary">{content.manifest.project.name}</h1>
@@ -435,6 +481,28 @@
                     {/if}
                 </div>
                 <div class="flex items-center gap-4 text-xs text-text-secondary/60">
+                    <!-- View Mode Toggle -->
+                    <div class="flex items-center gap-1 bg-bg-secondary rounded-sm p-0.5">
+                        <button
+                            onclick={toggleViewMode}
+                            class="px-2.5 py-1 rounded-sm transition-colors flex items-center gap-1.5 {viewMode === 'symbols' ? 'bg-warning text-bg-primary' : 'text-text-secondary hover:text-text-primary'}"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            <span class="hidden sm:inline">List</span>
+                        </button>
+                        <button
+                            onclick={toggleViewMode}
+                            class="px-2.5 py-1 rounded-sm transition-colors flex items-center gap-1.5 {viewMode === 'graph' ? 'bg-warning text-bg-primary' : 'text-text-secondary hover:text-text-primary'}"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span class="hidden sm:inline">Graph</span>
+                        </button>
+                    </div>
+
                     {#if isOwner && hasAnyEdits}
                         <button
                             onclick={exportWithEdits}
@@ -459,29 +527,57 @@
             </div>
         </div>
 
-        <!-- Search bar -->
-        <div class="shrink-0 border-b border-border-default px-4 py-3">
-            <div class="flex gap-3">
-                <input
-                    type="text"
-                    bind:value={searchQuery}
-                    placeholder="Search symbols..."
-                    class="flex-1 bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary placeholder-text-secondary/40 focus:outline-none focus:border-warning"
-                />
-                <select
-                    bind:value={filterKind}
-                    class="bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                >
-                    <option value="all">All</option>
-                    {#each symbolKinds() as kind}
-                        <option value={kind}>{kind}</option>
-                    {/each}
-                </select>
+        <!-- Search bar (only show in symbols view) -->
+        {#if viewMode === "symbols"}
+            <div class="shrink-0 border-b border-border-default px-4 py-3">
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        bind:value={searchQuery}
+                        placeholder="Search symbols..."
+                        class="flex-1 bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary placeholder-text-secondary/40 focus:outline-none focus:border-warning"
+                    />
+                    <select
+                        bind:value={filterKind}
+                        class="bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
+                    >
+                        <option value="all">All</option>
+                        {#each symbolKinds() as kind}
+                            <option value={kind}>{kind}</option>
+                        {/each}
+                    </select>
+                </div>
             </div>
-        </div>
+        {/if}
 
         <!-- Main content - fills remaining height -->
-        <div class="flex-1 flex flex-col lg:flex-row min-h-0">
+        {#if viewMode === "graph"}
+            <!-- Graph Visualization View - Full screen overlay -->
+            <div class="fixed inset-0 z-10" style="top: var(--navbar-height, 64px);">
+                {#if loadingGraph}
+                    <div class="h-full flex items-center justify-center bg-gray-900">
+                        <div class="text-center">
+                            <div class="animate-pulse text-warning text-xl mb-2">Loading graph...</div>
+                            <div class="text-sm text-text-secondary/60">Building visualization</div>
+                        </div>
+                    </div>
+                {:else if graphError}
+                    <div class="h-full flex items-center justify-center bg-gray-900">
+                        <div class="text-center p-8">
+                            <div class="text-danger text-xl mb-2">Graph Not Available</div>
+                            <div class="text-sm text-text-secondary/80 mb-4">{graphError}</div>
+                            <div class="text-xs text-text-secondary/60">
+                                This docpack may have been generated before graph support was added.
+                            </div>
+                        </div>
+                    </div>
+                {:else if graphData}
+                    <GraphVisualization graph={graphData} onNodeClick={handleNodeClick} />
+                {/if}
+            </div>
+        {:else}
+            <!-- Symbols List View (existing content) -->
+            <div class="flex-1 flex flex-col lg:flex-row min-h-0">
             <!-- Symbols list -->
             <div class="flex-1 lg:w-1/2 flex flex-col min-h-0 border-r border-border-default {showMobileDoc ? 'hidden lg:flex' : ''}">
                 <div class="shrink-0 bg-warning/10 border-b border-border-default px-4 py-2">
@@ -811,7 +907,8 @@
                     </div>
                 {/if}
             </div>
-        </div>
+            </div>
+        {/if}
     {/if}
 </div>
 

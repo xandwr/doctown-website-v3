@@ -134,3 +134,63 @@ export interface SymbolEdit {
   created_at: string;
   updated_at: string;
 }
+
+// Graph visualization types - code structure graph
+export type NodeRole =
+  | "CoreUtility"
+  | "EntryPoint"
+  | "DataModel"
+  | "Adapter"
+  | "Internal"
+  | "Standard";
+
+export type EdgeKind =
+  | "Calls"
+  | "TypeDependency"
+  | "FileCoLocation"
+  | "Inherits"
+  | "Implements";
+
+export type SideEffects = "Unknown" | "Pure" | "IO" | "State" | "None";
+
+export interface GraphNode {
+  id: string;
+  name: string;
+  kind: string;
+  file: string;
+  line: number;
+  pagerank: number;
+  in_degree: number;
+  out_degree: number;
+  role: NodeRole;
+  importance: number;
+  side_effects: SideEffects;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  kind: EdgeKind;
+  weight: number;
+}
+
+export interface GraphTopSymbol {
+  id: string;
+  name: string;
+  importance: number;
+  role: NodeRole;
+}
+
+export interface GraphStats {
+  node_count: number;
+  edge_count: number;
+  avg_in_degree: number;
+  avg_out_degree: number;
+  top_symbols: GraphTopSymbol[];
+}
+
+export interface CodeGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  stats: GraphStats;
+}
