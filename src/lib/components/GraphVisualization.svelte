@@ -88,14 +88,14 @@
       .append("rect")
       .attr("width", width)
       .attr("height", height)
-      .attr("fill", "#0f172a"); // Darker blue-gray background
+      .attr("fill", "#080809"); // Darker blue-gray background
 
     // Add zoom behavior
     const g = svg.append("g");
 
     // Create grid pattern that transforms with zoom
-    const gridSize = 50; // Grid spacing
-    const gridExtent = 5000; // How far the grid extends
+    const gridSize = 64; // Grid spacing
+    const gridExtent = 4096; // How far the grid extends
 
     const gridGroup = g.append("g").attr("class", "grid");
 
@@ -134,9 +134,11 @@
 
     svg.call(zoom);
 
-    // Create arrow markers for directed edges
-    svg
-      .append("defs")
+    // Create arrow markers and filters
+    const defs = svg.append("defs");
+
+    // Arrow markers for directed edges
+    defs
       .selectAll("marker")
       .data(Object.keys(edgeColors))
       .join("marker")
@@ -150,6 +152,22 @@
       .append("path")
       .attr("fill", (d) => edgeColors[d as keyof typeof edgeColors])
       .attr("d", "M0,-5L10,0L0,5");
+
+    // Glow filter for highlighted edges
+    const filter = defs.append("filter")
+      .attr("id", "glow")
+      .attr("x", "-50%")
+      .attr("y", "-50%")
+      .attr("width", "200%")
+      .attr("height", "200%");
+
+    filter.append("feGaussianBlur")
+      .attr("stdDeviation", "3")
+      .attr("result", "coloredBlur");
+
+    const feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     // Create force simulation
     // Important: D3's forceLink expects edges with source/target, not from/to
@@ -168,12 +186,12 @@
         d3
           .forceLink(d3Edges as any)
           .id((d: any) => d.id)
-          .distance(100)
+          .distance(256)
           .strength((d: any) => d.weight),
       )
-      .force("charge", d3.forceManyBody().strength(-300))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(20));
+      .force("charge", d3.forceManyBody().strength(-64))
+      .force("center", d3.forceCenter(0, 0))
+      .force("collision", d3.forceCollide().radius(32));
 
     // Create edges
     const link = g
@@ -184,7 +202,9 @@
       .join("line")
       .attr("stroke", (d) => edgeColors[d.kind] || "#999")
       .attr("stroke-width", (d) => Math.sqrt(d.weight * 5))
-      .attr("marker-end", (d) => `url(#arrow-${d.kind})`);
+      .attr("marker-end", (d) => `url(#arrow-${d.kind})`)
+      .attr("class", "graph-edge")
+      .attr("filter", "none");
 
     // Create nodes
     const node = g
@@ -257,6 +277,22 @@
             </div>
           `,
         );
+
+        // Highlight connected edges
+        link
+          .attr("stroke-opacity", (linkData: any) => {
+            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
+            return isConnected ? 0.9 : 0.1;
+          })
+          .attr("filter", (linkData: any) => {
+            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
+            return isConnected ? "url(#glow)" : "none";
+          })
+          .attr("stroke-width", (linkData: any) => {
+            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
+            const baseWidth = Math.sqrt(linkData.weight * 5);
+            return isConnected ? baseWidth * 1.5 : baseWidth;
+          });
       })
       .on("mousemove", (event) => {
         tooltip
@@ -265,6 +301,12 @@
       })
       .on("mouseout", () => {
         tooltip.style("visibility", "hidden");
+
+        // Reset all edges to normal
+        link
+          .attr("stroke-opacity", 0.3)
+          .attr("filter", "none")
+          .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
       });
 
     // Update positions on simulation tick
