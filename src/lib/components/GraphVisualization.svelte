@@ -535,7 +535,7 @@
   <div bind:this={container} class="w-full h-full"></div>
 
   <!-- Control Buttons -->
-  <div class="absolute top-24 md:top-4 left-4 flex flex-col gap-2">
+  <div class="absolute top-24 md:top-14 left-4 flex flex-col gap-2">
     <!-- Home Button -->
     <button
       onclick={() => zoomToFit()}
@@ -609,7 +609,7 @@
   <!-- Legend -->
   {#if showLegend || !isMobile}
     <div
-      class="absolute top-24 right-4 bg-gray-800 bg-opacity-95 p-3 md:p-4 rounded-lg text-xs text-gray-200 max-w-[280px] md:max-w-xs shadow-xl max-h-[70vh] overflow-y-auto"
+      class="absolute top-24 md:top-14 right-4 bg-gray-800 bg-opacity-95 p-3 md:p-4 rounded-lg text-xs text-gray-200 max-w-[280px] md:max-w-xs shadow-xl max-h-[70vh] overflow-y-auto"
     >
       <div class="flex justify-between items-center mb-2">
         <div class="font-semibold">Node Roles</div>
