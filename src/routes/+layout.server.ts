@@ -5,6 +5,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   return {
     user: locals.user || null,
     hasActiveSubscription: locals.hasActiveSubscription || false,
+    userRole: locals.userRole || "user",
     supabase: {
       url: SUPABASE_URL,
       key: SUPABASE_PUBLISHABLE_KEY,

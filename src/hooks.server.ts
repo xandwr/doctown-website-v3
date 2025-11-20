@@ -11,6 +11,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         // Session is valid and not expired
         event.locals.user = session.users;
         event.locals.accessToken = session.users.access_token;
+        event.locals.userRole = session.users.role || "user";
 
         // Check subscription status
         event.locals.hasActiveSubscription = await hasActiveSubscription(

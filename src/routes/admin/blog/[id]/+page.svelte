@@ -3,7 +3,7 @@
     import { goto } from "$app/navigation";
     import type { PageData } from "./$types";
 
-    export let data: PageData;
+    let { data }: { data: PageData } = $props();
 
     let loading = $state(true);
     let saving = $state(false);

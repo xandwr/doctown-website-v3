@@ -9,6 +9,7 @@ declare global {
       user?: User;
       accessToken?: string;
       hasActiveSubscription?: boolean;
+      userRole?: "user" | "admin";
     }
     // interface PageData {}
     // interface PageState {}

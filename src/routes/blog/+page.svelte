@@ -1,16 +1,27 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    
-    export let data: PageData;
-    const { posts } = data;
+
+    let { data }: { data: PageData } = $props();
+
+    const isAdmin = $derived(data.userRole === "admin");
 </script>
 
 <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="text-5xl font-bold text-text-primary mb-4">Blog</h1>
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-5xl font-bold text-text-primary">Blog</h1>
+        {#if isAdmin}
+            <a
+                href="/admin/blog"
+                class="px-4 py-2 bg-danger/20 border border-danger text-danger rounded-sm hover:bg-danger/30 transition-colors font-medium"
+            >
+                Admin Panel
+            </a>
+        {/if}
+    </div>
     <p class="text-text-secondary text-xl mb-12">Technical writeups and project updates</p>
 
     <div class="space-y-8">
-        {#each posts as post}
+        {#each data.posts as post}
             <a 
                 href="/blog/{post.slug}"
                 class="block border border-border-default rounded-lg p-6 hover:border-primary transition-colors"

@@ -9,13 +9,12 @@
 
     const user = $derived($page.data.user);
     const hasActiveSubscription = $derived($page.data.hasActiveSubscription);
+    const userRole = $derived($page.data.userRole);
 
     // Rank system: Admin > Pro > Free
     const userRank = $derived.by(() => {
         if (!user) return null; // Not logged in, no rank shown
-        // Check both login (GitHub API) and github_login (database)
-        const username = user.login || user.github_login;
-        if (username === "xandwr") return "Admin";
+        if (userRole === "admin") return "Admin";
         if (hasActiveSubscription) return "Pro";
         return "Free";
     });
