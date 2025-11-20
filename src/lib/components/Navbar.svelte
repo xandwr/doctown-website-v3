@@ -98,6 +98,13 @@
                     Commons
                 </a>
                 <a
+                    href="/town"
+                    class="hover:text-text-primary transition-colors"
+                    class:text-primary={$page.url.pathname === "/town"}
+                >
+                    Town
+                </a>
+                <a
                     href="/blog"
                     class="hover:text-text-primary transition-colors"
                     class:text-primary={$page.url.pathname.startsWith("/blog")}
@@ -222,6 +229,14 @@
                         onclick={() => (showMobileMenu = false)}
                     >
                         Commons
+                    </a>
+                    <a
+                        href="/town"
+                        class="px-4 py-3 hover:bg-border-strong transition-colors border-b border-border-strong"
+                        class:text-primary={$page.url.pathname === "/town"}
+                        onclick={() => (showMobileMenu = false)}
+                    >
+                        Town
                     </a>
                     <a
                         href="/blog"
