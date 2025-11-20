@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { page } from "$app/stores";
   import TownVisualization from "$lib/components/TownVisualization.svelte";
 
   interface TownUser {
@@ -13,6 +14,9 @@
   let users: TownUser[] = $state([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
+
+  const user = $derived($page.data.user);
+  const hasActiveSubscription = $derived($page.data.hasActiveSubscription);
 
   onMount(async () => {
     try {
@@ -70,7 +74,11 @@
     </div>
   {:else}
     <div class="flex-1">
-      <TownVisualization {users} />
+      <TownVisualization
+        {users}
+        currentUserId={user?.id}
+        {hasActiveSubscription}
+      />
     </div>
   {/if}
 </div>

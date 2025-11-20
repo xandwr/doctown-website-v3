@@ -12,9 +12,11 @@
 
   interface Props {
     users: TownUser[];
+    currentUserId?: string;
+    hasActiveSubscription?: boolean;
   }
 
-  let { users }: Props = $props();
+  let { users, currentUserId, hasActiveSubscription }: Props = $props();
 
   let container: HTMLDivElement;
   let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -22,6 +24,7 @@
   let hoveredUserId: string | null = null;
   let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null;
   let isMobile = $state(false);
+  let isDragging = false;
 
   onMount(() => {
     // Check if mobile
@@ -92,6 +95,32 @@
     const y = svgHeight / 2 - scale * centerY;
 
     // Animate to the new transform
+    svg
+      .transition()
+      .duration(750)
+      .call(
+        zoomBehavior.transform as any,
+        d3.zoomIdentity.translate(x, y).scale(scale),
+      );
+  }
+
+  function zoomToUser() {
+    if (!svg || !zoomBehavior || !simulation || !currentUserId) return;
+
+    const nodes = simulation.nodes();
+    const userNode = nodes.find((n: any) => n.id === currentUserId);
+
+    if (!userNode || userNode.x === undefined || userNode.y === undefined) return;
+
+    const svgWidth = parseFloat(svg.attr("width"));
+    const svgHeight = parseFloat(svg.attr("height"));
+
+    // Zoom to the user's node with a nice scale
+    const scale = 1.5;
+    const x = svgWidth / 2 - scale * userNode.x;
+    const y = svgHeight / 2 - scale * userNode.y;
+
+    // Animate to the user's node
     svg
       .transition()
       .duration(750)
@@ -207,20 +236,22 @@
       });
     }
 
-    // Create force simulation with link force to maintain the chain
+    // Create force simulation with BOUNCY SPRINGY physics!
     simulation = d3
       .forceSimulation(users as any)
+      .alphaDecay(0.01) // Slower decay = more bouncing around
+      .velocityDecay(0.3) // Less friction = more sploingy momentum
       .force(
         "link",
         d3
           .forceLink(links as any)
           .id((d: any) => d.id)
-          .distance(120)
-          .strength(0.8), // Strong links to keep chain together
+          .distance(150) // Longer springs
+          .strength(0.4), // Weaker = more elastic and bouncy
       )
-      .force("charge", d3.forceManyBody().strength(-200)) // Moderate repulsion
-      .force("center", d3.forceCenter(0, 0).strength(0.3)) // Moderate centering
-      .force("collision", d3.forceCollide().radius(70)); // Prevent overlap
+      .force("charge", d3.forceManyBody().strength(-300)) // Stronger repulsion = more bouncing
+      .force("center", d3.forceCenter(0, 0).strength(0.05)) // Weak centering for more freedom
+      .force("collision", d3.forceCollide().radius(70).strength(0.9)); // Bouncy collisions
 
     // Create links (lines connecting users in chronological order)
     const link = g
@@ -311,7 +342,7 @@
 
     nodeGroup
       .on("mouseenter", (event, d) => {
-        if (isMobile) return;
+        if (isMobile || isDragging) return;
 
         hoveredUserId = d.id;
         tooltip.style("visibility", "visible").html(
@@ -330,7 +361,7 @@
           .attr("r", 28);
       })
       .on("mousemove", (event) => {
-        if (isMobile) return;
+        if (isMobile || isDragging) return;
 
         tooltip
           .style("top", event.pageY - 10 + "px")
@@ -358,7 +389,6 @@
     // Update positions on simulation tick
     if (!simulation) return;
 
-    let hasInitiallyZoomed = false;
     simulation.on("tick", () => {
       // Update link positions
       link
@@ -374,20 +404,17 @@
 
       // Update node positions
       nodeGroup.attr("transform", (d: any) => `translate(${d.x},${d.y})`);
-
-      // After first few ticks, zoom to fit once
-      if (!hasInitiallyZoomed && simulation && simulation.alpha() < 0.8) {
-        hasInitiallyZoomed = true;
-        setTimeout(() => {
-          zoomToFit();
-        }, 50);
-      }
     });
 
     function dragstarted(
       event: d3.D3DragEvent<SVGGElement, TownUser, TownUser>,
     ) {
-      if (!event.active && simulation) simulation.alphaTarget(0.3).restart();
+      isDragging = true;
+      hoveredUserId = null;
+      tooltip.style("visibility", "hidden");
+
+      // Super bouncy restart with high energy!
+      if (!event.active && simulation) simulation.alphaTarget(0.5).restart();
       const s: any = event.subject;
       s.fx = s.x;
       s.fy = s.y;
@@ -402,7 +429,10 @@
     function dragended(
       event: d3.D3DragEvent<SVGGElement, TownUser, TownUser>,
     ) {
-      if (!event.active && simulation) simulation.alphaTarget(0);
+      isDragging = false;
+
+      // Let it keep bouncing after release!
+      if (!event.active && simulation) simulation.alphaTarget(0.1);
       const s: any = event.subject;
       s.fx = null;
       s.fy = null;
@@ -414,30 +444,32 @@
   <div bind:this={container} class="w-full h-full"></div>
 
   <!-- Control Buttons -->
-  <div class="absolute top-4 left-4 flex flex-col gap-2">
-    <!-- Home Button -->
-    <button
-      onclick={() => zoomToFit()}
-      class="bg-gray-800 bg-opacity-90 hover:bg-gray-700 p-2.5 md:p-3 rounded-lg text-gray-200 transition-colors duration-200 shadow-lg touch-manipulation"
-      title="Reset view"
-      aria-label="Reset view"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 md:h-5 md:w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
+  {#if currentUserId && hasActiveSubscription}
+    <div class="absolute top-4 left-4 flex flex-col gap-2">
+      <!-- Find Me Button (Pro only) -->
+      <button
+        onclick={() => zoomToUser()}
+        class="bg-blue-600 bg-opacity-90 hover:bg-blue-500 p-2.5 md:p-3 rounded-lg text-white transition-colors duration-200 shadow-lg touch-manipulation"
+        title="Find me in Town"
+        aria-label="Find me in Town"
       >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-        />
-      </svg>
-    </button>
-  </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 md:h-5 md:w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      </button>
+    </div>
+  {/if}
 
   <!-- Info Panel -->
   <div
@@ -451,6 +483,9 @@
         <div>• Drag nodes to move them</div>
         <div>• {isMobile ? "Pinch" : "Scroll"} to zoom</div>
         <div>• Click to visit GitHub profile</div>
+        {#if currentUserId && hasActiveSubscription}
+          <div class="text-blue-400 mt-2">✨ Click home to find yourself!</div>
+        {/if}
       </div>
     </div>
   </div>
