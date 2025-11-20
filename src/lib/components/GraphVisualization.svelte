@@ -15,6 +15,8 @@
   let simulation: d3.Simulation<any, any> | null = null;
   let hoveredNodeId: string | null = null;
   let isDragging = false;
+  let idleTimer: number | null = null;
+  let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null;
 
   // Color scheme for node roles
   const roleColors: Record<NodeRole, string> = {
@@ -43,7 +45,73 @@
     if (simulation) {
       simulation.stop();
     }
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+    }
   });
+
+  function resetIdleTimer() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+    }
+    idleTimer = window.setTimeout(() => {
+      zoomToFit();
+    }, 30000); // 30 seconds
+  }
+
+  function zoomToFit() {
+    if (!svg || !zoomBehavior || !simulation) return;
+
+    const nodes = simulation.nodes();
+    if (nodes.length === 0) return;
+
+    // Calculate bounding box of all nodes
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+
+    nodes.forEach((node: any) => {
+      if (node.x !== undefined && node.y !== undefined) {
+        minX = Math.min(minX, node.x);
+        maxX = Math.max(maxX, node.x);
+        minY = Math.min(minY, node.y);
+        maxY = Math.max(maxY, node.y);
+      }
+    });
+
+    // Add padding
+    const padding = 100;
+    minX -= padding;
+    maxX += padding;
+    minY -= padding;
+    maxY += padding;
+
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    const svgWidth = parseFloat(svg.attr("width"));
+    const svgHeight = parseFloat(svg.attr("height"));
+
+    // Calculate scale to fit the bounding box
+    const scale = Math.min(
+      svgWidth / width,
+      svgHeight / height,
+      2 // Max zoom level for initial view
+    ) * 0.9; // 90% to ensure everything fits comfortably
+
+    // Calculate the transform to center the graph
+    const x = svgWidth / 2 - scale * centerX;
+    const y = svgHeight / 2 - scale * centerY;
+
+    // Animate to the new transform
+    svg.transition()
+      .duration(750)
+      .call(
+        zoomBehavior.transform as any,
+        d3.zoomIdentity.translate(x, y).scale(scale)
+      );
+  }
 
   function initializeGraph() {
     if (!container) return;
@@ -127,14 +195,15 @@
         .attr("opacity", 0.3);
     }
 
-    const zoom = d3
+    zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 8])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
+        resetIdleTimer();
       });
 
-    svg.call(zoom);
+    svg.call(zoomBehavior);
 
     // Create arrow markers and filters
     const defs = svg.append("defs");
@@ -222,6 +291,7 @@
       .attr("class", "cursor-pointer")
       .on("click", (event, d) => {
         event.stopPropagation();
+        resetIdleTimer();
         if (onNodeClick) {
           onNodeClick(d.id);
         }
@@ -272,6 +342,7 @@
         // Only update if we're hovering a different node
         if (hoveredNodeId === d.id) return;
         hoveredNodeId = d.id;
+        resetIdleTimer();
 
         tooltip.style("visibility", "visible").html(
           `
@@ -322,6 +393,8 @@
 
     // Update positions on simulation tick
     if (!simulation) return;
+
+    let hasInitiallyZoomed = false;
     simulation.on("tick", () => {
       link
         .attr("x1", (d: any) => d.source.x)
@@ -332,6 +405,15 @@
       node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
 
       label.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+      // After first few ticks, zoom to fit once
+      if (!hasInitiallyZoomed && simulation && simulation.alpha() < 0.8) {
+        hasInitiallyZoomed = true;
+        setTimeout(() => {
+          zoomToFit();
+          resetIdleTimer();
+        }, 50);
+      }
     });
 
     function dragstarted(
@@ -339,6 +421,7 @@
     ) {
       isDragging = true;
       hoveredNodeId = null;
+      resetIdleTimer();
 
       // Reset all edges when dragging starts
       link
@@ -355,6 +438,7 @@
     function dragged(
       event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
     ) {
+      resetIdleTimer();
       const s: any = event.subject;
       s.fx = event.x;
       s.fy = event.y;
@@ -375,6 +459,28 @@
 
 <div class="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden">
   <div bind:this={container} class="w-full h-full"></div>
+
+  <!-- Home Button -->
+  <button
+    onclick={() => zoomToFit()}
+    class="absolute top-14 left-4 bg-gray-800 bg-opacity-90 hover:bg-gray-700 p-3 rounded-lg text-gray-200 transition-colors duration-200 shadow-lg"
+    title="Reset view (Ctrl+H)"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+      />
+    </svg>
+  </button>
 
   <!-- Legend -->
   <div
@@ -408,6 +514,7 @@
       <div>• Drag nodes to reposition</div>
       <div>• Scroll to zoom</div>
       <div>• Click node to view details</div>
+      <div>• Click home icon to reset view</div>
     </div>
   </div>
 
