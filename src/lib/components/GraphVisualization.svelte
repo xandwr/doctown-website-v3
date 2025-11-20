@@ -13,6 +13,8 @@
   let container: HTMLDivElement;
   let svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
   let simulation: d3.Simulation<any, any> | null = null;
+  let hoveredNodeId: string | null = null;
+  let isDragging = false;
 
   // Color scheme for node roles
   const roleColors: Record<NodeRole, string> = {
@@ -153,16 +155,16 @@
       .attr("fill", (d) => edgeColors[d as keyof typeof edgeColors])
       .attr("d", "M0,-5L10,0L0,5");
 
-    // Glow filter for highlighted edges
+    // Glow filter for highlighted edges (optimized)
     const filter = defs.append("filter")
       .attr("id", "glow")
-      .attr("x", "-50%")
-      .attr("y", "-50%")
-      .attr("width", "200%")
-      .attr("height", "200%");
+      .attr("x", "-100%")
+      .attr("y", "-100%")
+      .attr("width", "300%")
+      .attr("height", "300%");
 
     filter.append("feGaussianBlur")
-      .attr("stdDeviation", "3")
+      .attr("stdDeviation", "2")
       .attr("result", "coloredBlur");
 
     const feMerge = filter.append("feMerge");
@@ -204,7 +206,8 @@
       .attr("stroke-width", (d) => Math.sqrt(d.weight * 5))
       .attr("marker-end", (d) => `url(#arrow-${d.kind})`)
       .attr("class", "graph-edge")
-      .attr("filter", "none");
+      .attr("filter", "none")
+      .style("transition", "stroke-opacity 0.15s ease, stroke-width 0.15s ease");
 
     // Create nodes
     const node = g
@@ -263,6 +266,13 @@
 
     node
       .on("mouseover", (event, d) => {
+        // Skip edge highlighting during drag
+        if (isDragging) return;
+
+        // Only update if we're hovering a different node
+        if (hoveredNodeId === d.id) return;
+        hoveredNodeId = d.id;
+
         tooltip.style("visibility", "visible").html(
           `
             <div class="font-semibold">${d.name}</div>
@@ -278,21 +288,21 @@
           `,
         );
 
-        // Highlight connected edges
-        link
-          .attr("stroke-opacity", (linkData: any) => {
-            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
-            return isConnected ? 0.9 : 0.1;
-          })
-          .attr("filter", (linkData: any) => {
-            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
-            return isConnected ? "url(#glow)" : "none";
-          })
-          .attr("stroke-width", (linkData: any) => {
-            const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
+        // Highlight connected edges - batch updates for performance
+        link.each(function(linkData: any) {
+          const isConnected = linkData.source.id === d.id || linkData.target.id === d.id;
+          const elem = d3.select(this);
+
+          if (isConnected) {
             const baseWidth = Math.sqrt(linkData.weight * 5);
-            return isConnected ? baseWidth * 1.5 : baseWidth;
-          });
+            elem
+              .attr("stroke-opacity", 0.9)
+              .attr("filter", "url(#glow)")
+              .attr("stroke-width", baseWidth * 1.5);
+          } else {
+            elem.attr("stroke-opacity", 0.1);
+          }
+        });
       })
       .on("mousemove", (event) => {
         tooltip
@@ -300,9 +310,10 @@
           .style("left", event.pageX + 10 + "px");
       })
       .on("mouseout", () => {
+        hoveredNodeId = null;
         tooltip.style("visibility", "hidden");
 
-        // Reset all edges to normal
+        // Reset all edges to normal - batch update
         link
           .attr("stroke-opacity", 0.3)
           .attr("filter", "none")
@@ -326,6 +337,15 @@
     function dragstarted(
       event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
     ) {
+      isDragging = true;
+      hoveredNodeId = null;
+
+      // Reset all edges when dragging starts
+      link
+        .attr("stroke-opacity", 0.3)
+        .attr("filter", "none")
+        .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+
       if (!event.active && simulation) simulation.alphaTarget(0.3).restart();
       const s: any = event.subject;
       s.fx = s.x;
@@ -343,6 +363,8 @@
     function dragended(
       event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
     ) {
+      isDragging = false;
+
       if (!event.active && simulation) simulation.alphaTarget(0);
       const s: any = event.subject;
       s.fx = null;
