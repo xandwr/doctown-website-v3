@@ -111,18 +111,32 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
   }
 
   try {
-    // First, verify the docpack belongs to the user
+    // First, check if the docpack exists
     const { data: docpack, error: fetchError } = await supabase
       .from("docpacks")
-      .select("*, jobs!inner(user_id)")
+      .select("*, jobs(user_id)")
       .eq("id", docpackId)
-      .eq("jobs.user_id", locals.user.id)
       .single();
 
     if (fetchError || !docpack) {
+      console.error("Docpack not found:", docpackId, fetchError);
+      return json({ error: "Docpack not found" }, { status: 404 });
+    }
+
+    // Then verify ownership
+    const jobUserId = (docpack as any).jobs?.user_id;
+    if (!jobUserId || jobUserId !== locals.user.id) {
+      console.error(
+        "Unauthorized deletion attempt:",
+        docpackId,
+        "by user:",
+        locals.user.id,
+        "owner:",
+        jobUserId,
+      );
       return json(
-        { error: "Docpack not found or unauthorized" },
-        { status: 404 },
+        { error: "Unauthorized - you do not own this docpack" },
+        { status: 403 },
       );
     }
 
