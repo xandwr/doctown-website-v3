@@ -34,27 +34,48 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse JSON body (no longer multipart)
+    // Parse JSON body from builder
     const body = await request.json();
+
+    // New builder format uses snake_case consistently
     const {
       job_id: jobId,
       file_url: fileUrl,
-      tracked_branch: trackedBranch,
-      commit_hash: commitHash,
-      symbol_count: symbolCount,
+      success,
+      error: errorMessage,
+      symbols_count: symbolCount,
+      files_count: filesCount,
     } = body;
+
+    // Log received payload
+    console.log("DEBUG: Received job complete payload:", {
+      job_id: jobId,
+      success,
+      file_url: fileUrl ? "present" : "missing",
+      error: errorMessage,
+      symbols_count: symbolCount,
+      files_count: filesCount,
+    });
 
     // Validate input
     if (!jobId || typeof jobId !== "string") {
       return json({ error: "Invalid or missing job_id" }, { status: 400 });
     }
 
-    if (!fileUrl || typeof fileUrl !== "string") {
-      return json({ error: "Invalid or missing file_url" }, { status: 400 });
+    // Handle failed builds
+    if (success === false) {
+      // Update job to failed status
+      await updateJobStatus(jobId, "failed", errorMessage || "Build failed");
+
+      return json({ success: false, error: errorMessage }, { status: 200 });
     }
 
-    // Optional: tracked_branch and commit_hash from builder
-    // These represent the actual checked-out state during build
+    if (!fileUrl || typeof fileUrl !== "string") {
+      return json(
+        { error: "Invalid or missing file_url for successful build" },
+        { status: 400 },
+      );
+    }
 
     // Verify job exists and is in 'building' status
     const { data: job, error: jobError } = await supabase
@@ -117,10 +138,10 @@ export const POST: RequestHandler = async ({ request }) => {
       file_url: fileUrl,
       public: false, // Default to private
       repo_url: job.repo,
-      commit_hash: commitHash || null, // From builder's actual checkout
+      commit_hash: null, // Not tracked in new format
       version: null, // Internal only, not displayed
       language: null,
-      tracked_branch: trackedBranch || job.git_ref, // Use builder value or fall back to job's git_ref
+      tracked_branch: job.git_ref, // Use job's git_ref
       frozen: false, // Default to not frozen (auto-updates enabled)
       symbol_count: symbolCount || null, // Number of symbols extracted
     });

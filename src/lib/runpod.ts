@@ -32,7 +32,7 @@ export async function triggerBuild(
   const { job_id, user_id, repo, git_ref, token } = params;
 
   // Construct the RunPod API endpoint URL
-  const url = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/run`;
+  const url = `https://api.runpod.dev/v2/${RUNPOD_ENDPOINT_ID}/run`;
 
   try {
     const response = await fetch(url, {

@@ -3,10 +3,18 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
 import { supabase } from "$lib/supabase";
 import JSZip from "jszip";
+import type { BuilderGraph } from "$lib/types";
+import { transformGraphForVisualization } from "$lib/types";
 
 /**
  * API endpoint to extract and return the graph.json from a docpack.
- * Returns the code structure graph with nodes, edges, and statistics.
+ * Returns the code structure graph transformed for D3 visualization.
+ *
+ * The raw BuilderGraph is transformed into a VisualizationGraph with:
+ * - Flattened nodes array (instead of Record)
+ * - Computed importance scores
+ * - Role assignments based on connectivity
+ * - Statistics for UI display
  *
  * Access control: docpack must be public OR owned by the authenticated user
  */
@@ -127,9 +135,12 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     }
 
     const graphText = await graphFile.async("text");
-    const graph = JSON.parse(graphText);
+    const graph: BuilderGraph = JSON.parse(graphText);
 
-    return new Response(JSON.stringify(graph), {
+    // Transform to visualization format for D3 rendering
+    const visualizationGraph = transformGraphForVisualization(graph);
+
+    return new Response(JSON.stringify(visualizationGraph), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

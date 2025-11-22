@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { DocpackSymbol, DocpackDocumentation, DocpackParameter } from "$lib/types";
-
+    import type { BuilderGraphNode, SymbolDoc, GraphNodeKind } from "$lib/types";
+    import { getNodeName, getNodeKindString } from "$lib/types";
     import { onMount, tick } from "svelte";
 
     interface Props {
-        symbol: DocpackSymbol;
-        doc: DocpackDocumentation;
+        node: BuilderGraphNode;
+        doc: SymbolDoc | null;
         onSave: (edits: any) => Promise<void>;
         onCancel: () => void;
         onRevert: () => Promise<void>;
@@ -13,27 +13,16 @@
         focusField?: string;
     }
 
-    let { symbol, doc, onSave, onCancel, onRevert, hasEdits, focusField }: Props = $props();
+    let { node, doc, onSave, onCancel, onRevert, hasEdits, focusField }: Props = $props();
 
     // Focus the target field when component mounts
     onMount(async () => {
         if (focusField) {
             await tick();
-            // Handle special cases for sections without direct input IDs
-            let elementId: string;
-            if (focusField === 'notes') {
-                // Scroll to notes section header
-                elementId = 'notes-section';
-            } else if (focusField === 'parameters') {
-                // Scroll to parameters section header
-                elementId = 'parameters-section';
-            } else {
-                elementId = `${focusField}-input`;
-            }
+            const elementId = `${focusField}-input`;
             const element = document.getElementById(elementId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Only focus if it's an input/textarea
                 if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
                     element.focus();
                 }
@@ -41,48 +30,24 @@
         }
     });
 
-    // Local state for editing
-    let signature = $state(symbol.signature);
-    let kind = $state(symbol.kind);
-    let summary = $state(doc.summary);
-    let description = $state(doc.description);
-    let parameters = $state<DocpackParameter[]>(doc.parameters || []);
-    let returns = $state(doc.returns || "");
-    let example = $state(doc.example || "");
-    let notes = $state<string[]>(doc.notes || []);
+    // Local state for editing (maps to new SymbolDoc fields)
+    let purpose = $state(doc?.purpose || "");
+    let explanation = $state(doc?.explanation || "");
+    let complexityNotes = $state(doc?.complexity_notes || "");
+    let usageHints = $state(doc?.usage_hints || "");
 
     let saving = $state(false);
     let reverting = $state(false);
-
-    function addParameter() {
-        parameters = [...parameters, { name: "", type: "", description: "" }];
-    }
-
-    function removeParameter(index: number) {
-        parameters = parameters.filter((_, i) => i !== index);
-    }
-
-    function addNote() {
-        notes = [...notes, ""];
-    }
-
-    function removeNote(index: number) {
-        notes = notes.filter((_, i) => i !== index);
-    }
 
     async function handleSave() {
         saving = true;
         try {
             await onSave({
-                symbol_id: symbol.id,
-                signature,
-                kind,
-                summary,
-                description,
-                parameters,
-                returns,
-                example,
-                notes: notes.filter(n => n.trim() !== ""),
+                symbol_id: node.id,
+                purpose,
+                explanation,
+                complexity_notes: complexityNotes || null,
+                usage_hints: usageHints || null,
             });
         } finally {
             saving = false;
@@ -99,6 +64,14 @@
         } finally {
             reverting = false;
         }
+    }
+
+    // Get signature for display
+    function getSignature(): string | null {
+        if ('Function' in node.kind) {
+            return node.kind.Function.signature;
+        }
+        return null;
     }
 </script>
 
@@ -139,170 +112,95 @@
 
     <!-- Editor form -->
     <div class="flex-1 overflow-y-auto p-4 space-y-6">
-        <!-- Symbol metadata -->
+        <!-- Symbol info (read-only) -->
         <div class="space-y-3">
-            <h3 class="text-sm font-semibold text-text-secondary">Symbol Metadata</h3>
-            
-            <div>
-                <label for="kind-input" class="block text-xs text-text-secondary/70 mb-1">Kind</label>
-                <input
-                    id="kind-input"
-                    type="text"
-                    bind:value={kind}
-                    class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                />
-            </div>
+            <h3 class="text-sm font-semibold text-text-secondary">Symbol</h3>
 
-            <div>
-                <label for="signature-input" class="block text-xs text-text-secondary/70 mb-1">Signature</label>
-                <textarea
-                    id="signature-input"
-                    bind:value={signature}
-                    rows="3"
-                    class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary font-mono focus:outline-none focus:border-warning"
-                ></textarea>
+            <div class="bg-bg-primary border border-border-default rounded-sm p-3 space-y-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-warning">{getNodeName(node.kind)}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                        {getNodeKindString(node.kind)}
+                    </span>
+                </div>
+                {#if getSignature()}
+                    <div class="text-xs font-mono text-text-secondary/70 mt-1">
+                        {getSignature()}
+                    </div>
+                {/if}
+                <div class="text-xs text-text-secondary/50 font-mono">
+                    {node.location.file}:{node.location.start_line}
+                </div>
             </div>
         </div>
 
-        <!-- Documentation -->
-        <div class="space-y-3">
+        <!-- Documentation fields -->
+        <div class="space-y-4">
             <h3 class="text-sm font-semibold text-text-secondary">Documentation</h3>
-            
+
             <div>
-                <label for="summary-input" class="block text-xs text-text-secondary/70 mb-1">Summary</label>
+                <label for="purpose-input" class="block text-xs text-text-secondary/70 mb-1">Purpose</label>
                 <textarea
-                    id="summary-input"
-                    bind:value={summary}
+                    id="purpose-input"
+                    bind:value={purpose}
                     rows="2"
+                    placeholder="Brief description of what this symbol does"
                     class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
                 ></textarea>
             </div>
 
             <div>
-                <label for="description-input" class="block text-xs text-text-secondary/70 mb-1">Description</label>
+                <label for="explanation-input" class="block text-xs text-text-secondary/70 mb-1">Explanation</label>
                 <textarea
-                    id="description-input"
-                    bind:value={description}
+                    id="explanation-input"
+                    bind:value={explanation}
                     rows="4"
+                    placeholder="Detailed explanation of how it works"
+                    class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
+                ></textarea>
+            </div>
+
+            <div>
+                <label for="complexity-input" class="block text-xs text-text-secondary/70 mb-1">Complexity Notes</label>
+                <textarea
+                    id="complexity-input"
+                    bind:value={complexityNotes}
+                    rows="2"
+                    placeholder="Notes about algorithmic complexity, performance considerations, etc."
+                    class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
+                ></textarea>
+            </div>
+
+            <div>
+                <label for="usage-input" class="block text-xs text-text-secondary/70 mb-1">Usage Hints</label>
+                <textarea
+                    id="usage-input"
+                    bind:value={usageHints}
+                    rows="3"
+                    placeholder="Tips for using this symbol effectively"
                     class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
                 ></textarea>
             </div>
         </div>
 
-        <!-- Parameters -->
-        <div class="space-y-3" id="parameters-section">
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-text-secondary">Parameters</h3>
-                <button
-                    onclick={addParameter}
-                    class="px-2 py-1 text-xs bg-warning/10 text-warning hover:bg-warning/20 rounded-sm transition-colors"
-                >
-                    + Add
-                </button>
-            </div>
-            
-            {#each parameters as param, i}
-                <div class="bg-bg-primary border border-border-default rounded-sm p-3 space-y-2">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs text-text-secondary/50">Parameter {i + 1}</span>
-                        <button
-                            onclick={() => removeParameter(i)}
-                            class="text-xs text-danger hover:text-danger/80"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label for="param-name-{i}" class="block text-xs text-text-secondary/70 mb-1">Name</label>
-                            <input
-                                id="param-name-{i}"
-                                type="text"
-                                bind:value={param.name}
-                                class="w-full bg-bg-primary border border-border-default rounded-sm px-2 py-1 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                            />
-                        </div>
-                        <div>
-                            <label for="param-type-{i}" class="block text-xs text-text-secondary/70 mb-1">Type</label>
-                            <input
-                                id="param-type-{i}"
-                                type="text"
-                                bind:value={param.type}
-                                class="w-full bg-bg-primary border border-border-default rounded-sm px-2 py-1 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label for="param-desc-{i}" class="block text-xs text-text-secondary/70 mb-1">Description</label>
-                        <textarea
-                            id="param-desc-{i}"
-                            bind:value={param.description}
-                            rows="2"
-                            class="w-full bg-bg-primary border border-border-default rounded-sm px-2 py-1 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                        ></textarea>
-                    </div>
+        <!-- Metadata (read-only info from graph) -->
+        {#if node.metadata.complexity || node.metadata.fan_in > 0 || node.metadata.fan_out > 0}
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-text-secondary">Graph Metrics</h3>
+                <div class="flex flex-wrap gap-2">
+                    {#if node.metadata.complexity}
+                        <span class="px-2 py-1 rounded text-xs bg-bg-primary border border-border-default">
+                            Complexity: {node.metadata.complexity}
+                        </span>
+                    {/if}
+                    <span class="px-2 py-1 rounded text-xs bg-bg-primary border border-border-default">
+                        Fan-in: {node.metadata.fan_in}
+                    </span>
+                    <span class="px-2 py-1 rounded text-xs bg-bg-primary border border-border-default">
+                        Fan-out: {node.metadata.fan_out}
+                    </span>
                 </div>
-            {/each}
-            
-            {#if parameters.length === 0}
-                <div class="text-xs text-text-secondary/50 italic">No parameters</div>
-            {/if}
-        </div>
-
-        <!-- Returns -->
-        <div class="space-y-3">
-            <label for="returns-input" class="text-sm font-semibold text-text-secondary block">Returns</label>
-            <textarea
-                id="returns-input"
-                bind:value={returns}
-                rows="2"
-                class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
-            ></textarea>
-        </div>
-
-        <!-- Example -->
-        <div class="space-y-3">
-            <label for="example-input" class="text-sm font-semibold text-text-secondary block">Example</label>
-            <textarea
-                id="example-input"
-                bind:value={example}
-                rows="4"
-                class="w-full bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary font-mono focus:outline-none focus:border-warning"
-            ></textarea>
-        </div>
-
-        <!-- Notes -->
-        <div class="space-y-3" id="notes-section">
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-text-secondary">Notes</h3>
-                <button
-                    onclick={addNote}
-                    class="px-2 py-1 text-xs bg-warning/10 text-warning hover:bg-warning/20 rounded-sm transition-colors"
-                >
-                    + Add
-                </button>
             </div>
-            
-            {#each notes as note, i}
-                <div class="flex gap-2">
-                    <input
-                        type="text"
-                        bind:value={notes[i]}
-                        class="flex-1 bg-bg-primary border border-border-default rounded-sm px-3 py-2 text-sm text-text-secondary focus:outline-none focus:border-warning"
-                        placeholder="Add a note..."
-                    />
-                    <button
-                        onclick={() => removeNote(i)}
-                        class="px-3 text-xs text-danger hover:text-danger/80"
-                    >
-                        Remove
-                    </button>
-                </div>
-            {/each}
-            
-            {#if notes.length === 0}
-                <div class="text-xs text-text-secondary/50 italic">No notes</div>
-            {/if}
-        </div>
+        {/if}
     </div>
 </div>

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import * as d3 from "d3";
-  import type { CodeGraph, GraphNode, GraphEdge, NodeRole } from "$lib/types";
+  import type { VisualizationGraph, VisualizationNode, VisualizationEdge, VisualizationRole, GraphEdgeKind } from "$lib/types";
 
   interface Props {
-    graph: CodeGraph;
+    graph: VisualizationGraph;
     onNodeClick?: (nodeId: string) => void;
   }
 
@@ -21,28 +21,37 @@
   let showLegend = $state(false);
   let showStats = $state(false);
   let isMobile = $state(false);
-  let selectedNode: GraphNode | null = $state(null);
+  let selectedNode: VisualizationNode | null = $state(null);
   let linkSelection: any = null;
   let detailPanelGroup: any = null;
   let currentTransform: any = null;
 
   // Color scheme for node roles
-  const roleColors: Record<NodeRole, string> = {
+  const roleColors: Record<VisualizationRole, string> = {
     CoreUtility: "#3b82f6", // blue
     EntryPoint: "#10b981", // green
     DataModel: "#8b5cf6", // purple
-    Adapter: "#f59e0b", // amber
     Internal: "#6b7280", // gray
+    Cluster: "#10b981", // emerald
     Standard: "#94a3b8", // slate
   };
 
   // Color scheme for edge types
-  const edgeColors = {
+  const edgeColors: Record<GraphEdgeKind, string> = {
     Calls: "#64748b",
-    TypeDependency: "#7c3aed",
-    FileCoLocation: "#059669",
-    Inherits: "#dc2626",
-    Implements: "#ea580c",
+    Imports: "#059669",
+    TypeReference: "#7c3aed",
+    DataFlow: "#0ea5e9",
+    ModuleOwnership: "#f59e0b",
+    TraitImplementation: "#ea580c",
+    Inheritance: "#dc2626",
+    MethodOf: "#8b5cf6",
+    DefinedIn: "#6b7280",
+    InferredType: "#14b8a6",
+    TraitMethodCall: "#f97316",
+    MethodDispatch: "#3b82f6",
+    MacroExpansion: "#a855f7",
+    TraitProvides: "#ec4899",
   };
 
   onMount(() => {
@@ -147,7 +156,7 @@
     // Validate graph data - check for orphaned edges
     const nodeIds = new Set(graph.nodes.map((n) => n.id));
     const invalidEdges = graph.edges.filter(
-      (e) => !nodeIds.has(e.from) || !nodeIds.has(e.to),
+      (e) => !nodeIds.has(e.source) || !nodeIds.has(e.target),
     );
 
     if (invalidEdges.length > 0) {
@@ -159,7 +168,7 @@
 
     // Filter out edges that reference non-existent nodes
     const validEdges = graph.edges.filter(
-      (e) => nodeIds.has(e.from) && nodeIds.has(e.to),
+      (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
     );
 
     console.log(
@@ -238,7 +247,7 @@
         link
           .attr("stroke-opacity", 0.3)
           .attr("filter", "none")
-          .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+          .attr("stroke-width", 1.5);
       }
     });
 
@@ -280,13 +289,11 @@
     feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     // Create force simulation
-    // Important: D3's forceLink expects edges with source/target, not from/to
-    // We need to map our edges to use the correct format
+    // D3's forceLink expects edges with source/target (our format already uses this)
     const d3Edges = validEdges.map((e) => ({
-      source: e.from,
-      target: e.to,
+      source: e.source,
+      target: e.target,
       kind: e.kind,
-      weight: e.weight,
     }));
 
     simulation = d3
@@ -310,8 +317,8 @@
       .selectAll("line")
       .data(d3Edges)
       .join("line")
-      .attr("stroke", (d) => edgeColors[d.kind] || "#999")
-      .attr("stroke-width", (d) => Math.sqrt(d.weight * 5))
+      .attr("stroke", (d) => edgeColors[d.kind as GraphEdgeKind] || "#999")
+      .attr("stroke-width", 1.5)
       .attr("marker-end", (d) => `url(#arrow-${d.kind})`)
       .attr("class", "graph-edge")
       .attr("filter", "none")
@@ -347,9 +354,7 @@
           link
             .attr("stroke-opacity", 0.3)
             .attr("filter", "none")
-            .attr("stroke-width", (linkData: any) =>
-              Math.sqrt(linkData.weight * 5),
-            );
+            .attr("stroke-width", 1.5);
         } else {
           selectedNodeId = d.id;
           selectedNode = d;
@@ -361,11 +366,10 @@
             const elem = d3.select(this);
 
             if (isConnected) {
-              const baseWidth = Math.sqrt(linkData.weight * 5);
               elem
                 .attr("stroke-opacity", 0.9)
                 .attr("filter", "url(#glow)")
-                .attr("stroke-width", baseWidth * 1.5);
+                .attr("stroke-width", 2.5);
             } else {
               elem.attr("stroke-opacity", 0.1);
             }
@@ -374,7 +378,7 @@
       })
       .call(
         d3
-          .drag<SVGCircleElement, GraphNode>()
+          .drag<SVGCircleElement, VisualizationNode>()
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended) as any,
@@ -439,9 +443,9 @@
               <div>Role: ${d.role}</div>
               <div>File: ${d.file.split("/").pop()}</div>
               <div>Line: ${d.line}</div>
-              <div>Importance: ${d.importance}</div>
-              <div>PageRank: ${d.pagerank.toFixed(4)}</div>
-              <div>In-degree: ${d.in_degree} | Out-degree: ${d.out_degree}</div>
+              <div>Importance: ${d.importance.toFixed(1)}</div>
+              <div>Fan-in: ${d.fan_in} | Fan-out: ${d.fan_out}</div>
+              ${d.complexity ? `<div>Complexity: ${d.complexity}</div>` : ''}
             </div>
           `,
         );
@@ -453,11 +457,10 @@
           const elem = d3.select(this);
 
           if (isConnected) {
-            const baseWidth = Math.sqrt(linkData.weight * 5);
             elem
               .attr("stroke-opacity", 0.9)
               .attr("filter", "url(#glow)")
-              .attr("stroke-width", baseWidth * 1.5);
+              .attr("stroke-width", 2.5);
           } else {
             elem.attr("stroke-opacity", 0.1);
           }
@@ -482,7 +485,7 @@
         link
           .attr("stroke-opacity", 0.3)
           .attr("filter", "none")
-          .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+          .attr("stroke-width", 1.5);
       });
 
     // Update positions on simulation tick
@@ -511,7 +514,7 @@
     });
 
     function dragstarted(
-      event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
+      event: d3.D3DragEvent<SVGCircleElement, VisualizationNode, VisualizationNode>,
     ) {
       isDragging = true;
       hoveredNodeId = null;
@@ -521,7 +524,7 @@
       link
         .attr("stroke-opacity", 0.3)
         .attr("filter", "none")
-        .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+        .attr("stroke-width", 1.5);
 
       if (!event.active && simulation) simulation.alphaTarget(0.3).restart();
       const s: any = event.subject;
@@ -530,7 +533,7 @@
     }
 
     function dragged(
-      event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
+      event: d3.D3DragEvent<SVGCircleElement, VisualizationNode, VisualizationNode>,
     ) {
       resetIdleTimer();
       const s: any = event.subject;
@@ -539,7 +542,7 @@
     }
 
     function dragended(
-      event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>,
+      event: d3.D3DragEvent<SVGCircleElement, VisualizationNode, VisualizationNode>,
     ) {
       isDragging = false;
 
@@ -549,7 +552,7 @@
       s.fy = null;
     }
 
-    function renderDetailPanel(node: GraphNode) {
+    function renderDetailPanel(node: VisualizationNode) {
       if (!detailPanelGroup) return;
 
       // Hide tooltip when opening detail panel
@@ -630,8 +633,8 @@
       const details = [
         { label: "Type", value: node.kind },
         { label: "File", value: node.file.split("/").pop() || "" },
-        { label: "Importance", value: node.importance.toString() },
-        { label: "Connections", value: `${node.in_degree}↓ ${node.out_degree}↑` },
+        { label: "Importance", value: node.importance.toFixed(1) },
+        { label: "Connections", value: `${node.fan_in}↓ ${node.fan_out}↑` },
       ];
 
       details.forEach((detail, i) => {
@@ -666,7 +669,7 @@
           link
             .attr("stroke-opacity", 0.3)
             .attr("filter", "none")
-            .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+            .attr("stroke-width", 1.5);
         });
 
       closeBtn
@@ -698,7 +701,7 @@
             link
               .attr("stroke-opacity", 0.3)
               .attr("filter", "none")
-              .attr("stroke-width", (d: any) => Math.sqrt(d.weight * 5));
+              .attr("stroke-width", 1.5);
           });
 
         viewBtn
@@ -914,11 +917,13 @@
       <div class="space-y-1 text-[10px] md:text-xs">
         <div>Nodes: {graph.stats.node_count}</div>
         <div>Edges: {graph.stats.edge_count}</div>
-        <div>
-          Avg In-degree: {graph.stats.avg_in_degree.toFixed(2)}
-        </div>
-        <div>
-          Avg Out-degree: {graph.stats.avg_out_degree.toFixed(2)}
+        <div>Functions: {graph.stats.function_count}</div>
+        <div>Types: {graph.stats.type_count}</div>
+        {#if graph.stats.cluster_count > 0}
+          <div>Clusters: {graph.stats.cluster_count}</div>
+        {/if}
+        <div class="text-[9px] text-gray-400 mt-1">
+          {graph.stats.languages.join(', ')}
         </div>
       </div>
     </div>

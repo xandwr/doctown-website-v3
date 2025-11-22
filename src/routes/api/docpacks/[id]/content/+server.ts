@@ -3,11 +3,21 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "$env/dynamic/private";
 import { supabase } from "$lib/supabase";
 import JSZip from "jszip";
-import type { DocpackContent } from "$lib/types";
+import type {
+  DocpackContent,
+  BuilderGraph,
+  BuilderDocumentation,
+  BuilderMetadata,
+} from "$lib/types";
 
 /**
  * API endpoint to extract and return the content of a docpack.
- * Returns manifest, symbols, and all documentation from the ZIP archive.
+ * Returns graph, documentation, and metadata from the ZIP archive.
+ *
+ * New format (builder v2):
+ * - graph.json: Full code graph with nodes and edges
+ * - documentation.json: LLM-generated documentation
+ * - metadata.json: Package metadata
  *
  * Access control: docpack must be public OR owned by the authenticated user
  */
@@ -118,53 +128,43 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     // Parse the ZIP file
     const zip = await JSZip.loadAsync(buffer);
 
-    // Extract manifest
-    const manifestFile = zip.file("manifest.json");
-    if (!manifestFile) {
+    // Extract graph.json (required)
+    const graphFile = zip.file("graph.json");
+    if (!graphFile) {
       return new Response(
-        JSON.stringify({ error: "manifest.json not found in docpack" }),
+        JSON.stringify({ error: "graph.json not found in docpack" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
-    const manifestText = await manifestFile.async("text");
-    const manifest = JSON.parse(manifestText);
+    const graphText = await graphFile.async("text");
+    const graph: BuilderGraph = JSON.parse(graphText);
 
-    // Extract symbols
-    const symbolsFile = zip.file("symbols.json");
-    if (!symbolsFile) {
+    // Extract documentation.json (required)
+    const documentationFile = zip.file("documentation.json");
+    if (!documentationFile) {
       return new Response(
-        JSON.stringify({ error: "symbols.json not found in docpack" }),
+        JSON.stringify({ error: "documentation.json not found in docpack" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
-    const symbolsText = await symbolsFile.async("text");
-    const symbols = JSON.parse(symbolsText);
+    const documentationText = await documentationFile.async("text");
+    const documentation: BuilderDocumentation = JSON.parse(documentationText);
 
-    // Extract all documentation files
-    const docs: Record<string, any> = {};
-    const docsFolder = zip.folder("docs");
-
-    if (docsFolder) {
-      const docFiles = Object.keys(zip.files).filter(
-        (name) => name.startsWith("docs/") && name.endsWith(".json"),
+    // Extract metadata.json (required)
+    const metadataFile = zip.file("metadata.json");
+    if (!metadataFile) {
+      return new Response(
+        JSON.stringify({ error: "metadata.json not found in docpack" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
-
-      for (const docPath of docFiles) {
-        const docFile = zip.file(docPath);
-        if (docFile) {
-          const docText = await docFile.async("text");
-          const doc = JSON.parse(docText);
-          // Extract doc_id from filename (e.g., "docs/doc_0001.json" -> "doc_0001")
-          const docId = docPath.replace("docs/", "").replace(".json", "");
-          docs[docId] = doc;
-        }
-      }
     }
+    const metadataText = await metadataFile.async("text");
+    const metadata: BuilderMetadata = JSON.parse(metadataText);
 
     const content: DocpackContent = {
-      manifest,
-      symbols,
-      docs,
+      graph,
+      documentation,
+      metadata,
       tracked_branch: docpackData.tracked_branch || null,
     };
 

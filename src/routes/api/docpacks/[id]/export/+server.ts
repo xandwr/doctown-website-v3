@@ -1,5 +1,5 @@
 import type { RequestHandler } from "./$types";
-import type { SymbolEdit } from "$lib/types";
+import type { SymbolEdit, BuilderDocumentation } from "$lib/types";
 import {
   S3Client,
   GetObjectCommand,
@@ -12,6 +12,11 @@ import JSZip from "jszip";
 /**
  * POST: Export docpack with user edits applied
  * Creates a new version of the docpack with all user edits merged in
+ *
+ * New format (builder v2):
+ * - graph.json: Code graph (not modified by edits)
+ * - documentation.json: LLM documentation (edits applied to symbol_summaries)
+ * - metadata.json: Package metadata (not modified)
  */
 export const POST: RequestHandler = async ({ params, locals }) => {
   try {
@@ -110,49 +115,38 @@ export const POST: RequestHandler = async ({ params, locals }) => {
       editsMap[edit.symbol_id] = edit;
     }
 
-    // Update symbols.json
-    const symbolsFile = zip.file("symbols.json");
-    if (symbolsFile) {
-      const symbolsText = await symbolsFile.async("text");
-      const symbols = JSON.parse(symbolsText);
+    // Update documentation.json with user edits
+    const documentationFile = zip.file("documentation.json");
+    if (documentationFile) {
+      const documentationText = await documentationFile.async("text");
+      const documentation: BuilderDocumentation = JSON.parse(documentationText);
 
-      for (const symbol of symbols) {
-        const edit = editsMap[symbol.id];
-        if (edit) {
-          if (edit.signature) symbol.signature = edit.signature;
-          if (edit.kind) symbol.kind = edit.kind;
+      // Apply edits to symbol_summaries
+      for (const [nodeId, edit] of Object.entries(editsMap)) {
+        const symbolDoc = documentation.symbol_summaries[nodeId];
+        if (symbolDoc) {
+          // Apply user edits, overwriting generated content
+          if (edit.purpose) symbolDoc.purpose = edit.purpose;
+          if (edit.explanation) symbolDoc.explanation = edit.explanation;
+          if (edit.complexity_notes)
+            symbolDoc.complexity_notes = edit.complexity_notes;
+          if (edit.usage_hints) symbolDoc.usage_hints = edit.usage_hints;
+        } else {
+          // Create new entry if symbol doesn't have documentation
+          documentation.symbol_summaries[nodeId] = {
+            node_id: nodeId,
+            purpose: edit.purpose || "",
+            explanation: edit.explanation || "",
+            complexity_notes: edit.complexity_notes || null,
+            usage_hints: edit.usage_hints || null,
+            caller_references: [],
+            callee_references: [],
+            semantic_cluster: null,
+          };
         }
       }
 
-      zip.file("symbols.json", JSON.stringify(symbols, null, 2));
-    }
-
-    // Update doc files
-    const docFiles = Object.keys(zip.files).filter(
-      (name) => name.startsWith("docs/") && name.endsWith(".json"),
-    );
-
-    for (const docPath of docFiles) {
-      const docFile = zip.file(docPath);
-      if (docFile) {
-        const docText = await docFile.async("text");
-        const doc = JSON.parse(docText);
-
-        // Find if there's an edit for this doc's symbol
-        const symbolId = doc.symbol;
-        const edit = editsMap[symbolId];
-
-        if (edit) {
-          if (edit.summary) doc.summary = edit.summary;
-          if (edit.description) doc.description = edit.description;
-          if (edit.parameters) doc.parameters = edit.parameters;
-          if (edit.returns) doc.returns = edit.returns;
-          if (edit.example) doc.example = edit.example;
-          if (edit.notes) doc.notes = edit.notes;
-
-          zip.file(docPath, JSON.stringify(doc, null, 2));
-        }
-      }
+      zip.file("documentation.json", JSON.stringify(documentation, null, 2));
     }
 
     // Generate the modified ZIP
